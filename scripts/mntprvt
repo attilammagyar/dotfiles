@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo cryptsetup --cipher=aes --hash=sha1 --key-size=128 create private /dev/sda6
+mount ~/private
+

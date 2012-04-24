@@ -1,0 +1,89 @@
+#!/bin/bash
+
+BUILD_DIR=~/tmp/build
+INSTALL_DIR=~/tmp/install
+MAKE=/usr/bin/make
+
+pwd="`pwd`"
+
+main()
+{
+    make_target="$1"
+
+    project_root=$(find_project_root)
+    [ "x$project_root" = "x/" ] && error 1 "unable to find project root directory"
+
+    project_name="`basename $project_root`"
+    create_build_directories "$project_name"
+
+    cd "$BUILD_DIR/$project_name" \
+        || error 6 "unable to cd into $BUILD_DIR/$project_name"
+
+    exit_code=0
+
+    if [ "x$make_target" = "xbootstrap" ]
+    then
+        shift
+        clear_everything "$project_name"
+        copy_files "$project_root"
+        ./autogen.sh \
+            && ./configure --prefix="$INSTALL_DIR/$project_name" "$@" \
+            && $MAKE \
+            && $MAKE install
+        exit_code=$?
+    else
+        copy_files "$project_root"
+        $MAKE "$@"
+        exit_code=$?
+    fi
+    cd "$pwd"
+    return $exit_code
+}
+
+find_project_root()
+{
+    project_root="$pwd"
+    while [ \( ! -d "$project_root/.git" \) -a "x$project_root" != "x/" ]
+    do
+        project_root=$(dirname "$project_root")
+    done
+    echo "$project_root"
+}
+
+error()
+{
+    exit_code="$1"
+    message="$2"
+    echo "ERROR: $message" >&2
+    cd "$pwd"
+    exit "$exit_code"
+}
+
+create_build_directories()
+{
+    project_name="$1"
+    mkdir -p "$BUILD_DIR/$project_name" \
+        || error 3 "unable to create directory: $BUILD_DIR/$project_name"
+    mkdir -p "$INSTALL_DIR/$project_name" \
+        || error 4 "unable to create directory: $INSTALL_DIR/$project_name"
+}
+
+clear_everything()
+{
+    project_name="$1"
+    [ "x$BUILD_DIR/$project_name" = "x/" ] && error 42 "WOULD rm -rf /* !!!"
+    rm -vrf "$BUILD_DIR/$project_name/"* \
+        || error 7 "unable to clean $BUILD_DIR/$project_name"
+    rm -vrf "$INSTALL_DIR/$project_name/"* \
+        || error 8 "unable to clean $INSTALL_DIR/$project_name"
+}
+
+copy_files()
+{
+    project_root="$1"
+    rsync -rutv --exclude '.*' "$project_root" "$BUILD_DIR/" \
+        || error 5 "rsync failed"
+}
+
+main $@
+exit $?

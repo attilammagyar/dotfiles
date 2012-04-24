@@ -1,0 +1,124 @@
+" Turn on line numbers
+set number
+
+" Tabs are displayed as 4 characters wide
+set tabstop=4
+
+" Indentation is 4 spaces
+set shiftwidth=4
+
+" Insert 4 spaces instead of tabs
+set expandtab
+
+" Automatic indentation
+set autoindent
+set smartindent
+
+" Search while typing pattern
+set incsearch
+
+" Highlight search pattern matches
+set hlsearch
+
+" Automatically format doxygen style comments
+set comments=sl:/**,mb:\ *,elx:\ */
+
+" Insert comment leader when hitting enter in insert mode
+set formatoptions+=r
+
+" Insert comment leader when hitting o in normal mode
+set formatoptions+=o
+
+" Font name for gVim
+set guifont=Monaco
+
+" Draw a margin in the 80th column
+set colorcolumn=80
+
+" Show current line and column numbers
+set ruler
+
+" Command line is 2 lines, so it's easier to type complex commands
+set cmdheight=2
+
+" Some nice colorscheme
+colors evening
+
+" Highlight syntax
+syntax on
+
+" Always show status line
+set laststatus=2
+
+" Statusline
+set statusline=%{strftime(\"%I:%M\")}           " current time
+set statusline+=\ \(%3.3{v:shell_error}\)       " exit code of last shell cmd
+set statusline+=\ %m                            " modified flag
+set statusline+=\ %-.30F                        " last 30 chars of file name
+set statusline+=\ %-y                           " file type
+set statusline+=%=                              " left-right separator
+set statusline+=%{strlen(&fenc)?&fenc:&enc}     " character encoding
+set statusline+=\ \[%{v:operator}\]             " last operator
+set statusline+=\ %5.l,%-3.c                    " current line and column
+set statusline+=\ \[0x%02.B\]                   " ASCII code of current char
+set statusline+=\ %3.p%%                        " scroll position percentage
+
+" Always highlight tabs and trailing spaces.
+set list
+set listchars=tab:>.,trail:.,nbsp:.
+
+" Trailing spaces to be highlighted in red.
+highlight WhitespaceEOL term=reverse ctermbg=Red guibg=Red
+match WhitespaceEOL /\s\+$/
+
+" Lines longer than 80 characters will be highlighted in red.
+highlight LongLines term=reverse ctermbg=Red guibg=Red
+match LongLines /^.\{80,\}$/
+
+" Make frequent typos work.
+command Q :q
+command W :w
+command Wq :wq
+command WQ :wq
+
+" Automatically change directory to the one containing the current file.
+autocmd BufEnter * silent! lcd %:p:h
+
+" Pressing F2 will invoke lookup_docs.sh in the PATH with the current filename
+" and the word under the cursor. That script may attempt to open relevant docs
+" according to the given arguments. Mine guesses file type by it's extension
+" and either looks up the given word in various offline documentation or uses
+" Google depending on file type. See https://gist.github.com/1239536 for my
+" scripts.
+nnoremap <F2> :!lookup_docs.sh "%" "<cword>"<CR><CR>
+
+" Pressing F3 will attempt to search the git repository for the current word.
+nnoremap <F3> :!cd ./"`git rev-parse --show-cdup`";git grep "<cword>";cd -<CR>
+
+" Pressing F4 will attempt to git-blame the current line.
+command GitBlame :echo system('git blame -L'.line('.').',+1 '.expand('%'))
+nnoremap <F4> :GitBlame<CR>
+
+" Pressing F5 will invoke a bash shell and return to the window right after.
+nnoremap <F5> :! PROMPT_EXTRA='[VIM]' bash<CR><CR>
+
+" Pressing F10 will toggle highlighting the current cursor position.
+highlight CursorLine   term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
+highlight CursorColumn term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
+nnoremap <F10> :set cursorline! cursorcolumn!<CR>
+
+" Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
+" filename will most likely be ignored by any .gitignore files without any
+" additional work. Tag file will be regenerated if it's more than 3 hours old
+" and it will be updated when writing a file. When no tagfile can be found in
+" the directory tree up to the root directory, nothing is done. Touch a tagfile
+" in the directory tree anywhere you like it.
+set tags=.tags.pyc,../.tags.pyc,../../.tags.pyc,../../../.tags.pyc,
+set tags+=../../../../.tags.pyc,../../../../../.tags.pyc
+command Ctags silent! !ctags.sh ".tags.pyc" "%" &
+autocmd BufWritePost *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php* Ctags
+autocmd BufWritePost *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh Ctags
+Ctags
+
+" Turn on wrapping for text files.
+autocmd BufNewFile,BufRead *.txt,*.md set textwidth=78
