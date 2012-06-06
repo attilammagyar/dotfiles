@@ -93,7 +93,7 @@ autocmd BufEnter * silent! lcd %:p:h
 nnoremap <F2> :!lookup_docs.sh "%" "<cword>"<CR><CR>
 
 " Pressing F3 will attempt to search the git repository for the current word.
-nnoremap <F3> :!cd ./"`git rev-parse --show-cdup`";git grep "<cword>";cd -<CR>
+nnoremap <F3> :!clear;cd ./"`git rev-parse --show-cdup`";git grep "<cword>";cd -<CR>
 
 " Pressing F4 will attempt to git-blame the current line.
 command GitBlame :echo system('git blame -L'.line('.').',+1 '.expand('%'))
