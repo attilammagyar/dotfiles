@@ -41,11 +41,14 @@ set ruler
 " Command line is 2 lines, so it's easier to type complex commands
 set cmdheight=2
 
+" Highlight syntax
+syntax on
+
 " Some nice colorscheme
 colors evening
 
-" Highlight syntax
-syntax on
+" Make constants readable on projector as well
+highlight Constant ctermbg=black ctermfg=green
 
 " Always show status line
 set laststatus=2
