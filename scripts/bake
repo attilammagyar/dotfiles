@@ -20,22 +20,21 @@ main()
         || error 6 "unable to cd into $BUILD_DIR/$project_name"
 
     exit_code=0
-
     if [ "x$make_target" = "xbootstrap" ]
     then
         shift
         clear_everything "$project_name"
         copy_files "$project_root"
-        ./autogen.sh \
-            && ./configure --prefix="$INSTALL_DIR/$project_name" "$@" \
-            && $MAKE \
-            && $MAKE install
+        try_autogen \
+            && try_configure "$project_name" "$@" \
+            && try_make
         exit_code=$?
     else
         copy_files "$project_root"
         $MAKE "$@"
         exit_code=$?
     fi
+
     cd "$pwd"
     return $exit_code
 }
@@ -83,6 +82,38 @@ copy_files()
     project_root="$1"
     rsync -rutv --exclude '.*' "$project_root" "$BUILD_DIR/" \
         || error 5 "rsync failed"
+}
+
+try_autogen()
+{
+    if [ -e "./autogen.sh" ]
+    then
+        ./autogen.sh
+        return $?
+    fi
+    return 0
+}
+
+try_configure()
+{
+    project_name="$1"
+    shift
+    if [ -e "./configure" ]
+    then
+        ./configure --prefix="$INSTALL_DIR/$project_name" "$@"
+        return $?
+    fi
+    return 0
+}
+
+try_make()
+{
+    if [ -e "./Makefile" -o -e "./makefile" ]
+    then
+        $MAKE && $MAKE install
+        return $?
+    fi
+    return 0
 }
 
 main $@
