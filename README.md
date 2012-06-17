@@ -17,7 +17,7 @@ Files and directories
     * ctags.sh: ctags helper script for my vimrc
     * lookup_docs.sh: API documentation finder for my vimrc
     * vid2android.sh: convert and resize videos for my android phone (2.2)
-    * bake: make-shift wrapper around make to do compiling and test
+    * make: make-shift wrapper around make to do compiling and test
             installations out-of-tree
     * md2bloghtml: convert markdown files to HTML to be used in my company blog
     * mntprvt: mount the encrypted part of my home directory
