@@ -32,8 +32,8 @@ set formatoptions+=o
 " Font name for gVim
 set guifont=Monaco
 
-" Draw a margin in the 80th column
-set colorcolumn=80
+" Draw a margin in the 81th column
+set colorcolumn=81
 
 " Show current line and column numbers
 set ruler
@@ -76,7 +76,7 @@ match WhitespaceEOL /\s\+$/
 
 " Lines longer than 80 characters will be highlighted in red.
 highlight LongLines term=reverse ctermbg=Red guibg=Red
-match LongLines /^.\{80,\}$/
+match LongLines /^.\{81,\}$/
 
 " Make frequent typos work.
 command Q :q
