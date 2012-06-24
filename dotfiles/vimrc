@@ -105,8 +105,8 @@ nnoremap <F4> :GitBlame<CR>
 " Pressing F5 will invoke a bash shell and return to the window right after.
 nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
 
-" Pressing F7 will attempt to invoke unit tests through `ant` or `make`.
-nnoremap <F7> :!clear;cd "`git rev-parse --show-cdup`";make check\|\|ant junit\|\|ant test;cd -<CR>
+" Pressing F7 will attempt to invoke unit tests through `bake` or `ant`.
+nnoremap <F7> :!clear;cd "`git rev-parse --show-cdup`";bake check\|\|ant junit\|\|ant test;cd -<CR>
 
 " Pressing F10 will toggle highlighting the current cursor position.
 highlight CursorLine   term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
