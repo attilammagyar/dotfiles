@@ -68,7 +68,7 @@ set statusline+=\ %3.p%%                        " scroll position percentage
 
 " Always highlight tabs and trailing spaces.
 set list
-set listchars=tab:>.,trail:.,nbsp:.
+set listchars=tab:>\ ,trail:.,nbsp:.
 
 " Trailing spaces to be highlighted in red.
 highlight WhitespaceEOL term=reverse ctermbg=Red guibg=Red
