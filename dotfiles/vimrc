@@ -111,10 +111,13 @@ nnoremap <F7> :!clear;cd "`git rev-parse --show-cdup`";bake check\|\|ant junit\|
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
 
-" Pressing F10 will toggle highlighting the current cursor position.
+" Pressing F10 will re-run the last colon command
+nnoremap <F10> :!clear <CR> q:k <CR>
+
+" Pressing F12 will toggle highlighting the current cursor position.
 highlight CursorLine   term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
 highlight CursorColumn term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
-nnoremap <F10> :set cursorline! cursorcolumn!<CR>
+nnoremap <F12> :set cursorline! cursorcolumn!<CR>
 
 " Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
 " filename will most likely be ignored by any .gitignore files without any
