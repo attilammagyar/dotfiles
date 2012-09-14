@@ -55,7 +55,7 @@ set laststatus=2
 
 " Statusline
 set statusline=%{strftime(\"%I:%M\")}                   " current time
-set statusline+=\ \(%{v:shell_error?\"FAIL:\":\"OK:\"}  " FAIL or OK depending on last shell cmd
+set statusline+=\ \(%{v:shell_error?\"FAIL:\":\"ok:\"}  " FAIL or OK depending on last shell cmd
 set statusline+=\ %{v:shell_error}\)                    " exit code of last shell cmde
 set statusline+=\ %m                                    " modified flag
 set statusline+=\ %-.30F                                " last 30 chars of file name
@@ -106,8 +106,9 @@ nnoremap <F4> :GitBlame<CR>
 " Pressing F5 will invoke a bash shell and return to the window right after.
 nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
 
-" Pressing F7 will attempt to invoke unit tests through `bake` or `ant`.
-nnoremap <F7> :!clear;cd "`git rev-parse --show-cdup`";bake check\|\|ant junit\|\|ant test;cd -<CR>
+" Pressing F7 will attempt to invoke unit tests through a shell script named
+" run_tests.sh and open the output in a new window in case of failure.
+nnoremap <F7> :!clear;run_tests.sh /tmp/__test_output<CR><CR>:if shell_error!=0<CR>:14split + /tmp/__test_output<CR><CR>:endif<CR><CR>
 
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
