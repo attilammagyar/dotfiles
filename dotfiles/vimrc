@@ -76,7 +76,7 @@ highlight WhitespaceEOL term=reverse ctermbg=Red guibg=Red
 match WhitespaceEOL /\s\+$/
 
 " Lines longer than 80 characters will be highlighted in red.
-highlight LongLines term=reverse ctermbg=Red guibg=Red
+highlight LongLines term=reverse ctermfg=Red guifg=Red
 match LongLines /^.\{81,\}$/
 
 " Make frequent typos work.
