@@ -54,17 +54,18 @@ highlight Constant ctermbg=black ctermfg=green
 set laststatus=2
 
 " Statusline
-set statusline=%{strftime(\"%I:%M\")}           " current time
-set statusline+=\ \(%3.3{v:shell_error}\)       " exit code of last shell cmd
-set statusline+=\ %m                            " modified flag
-set statusline+=\ %-.30F                        " last 30 chars of file name
-set statusline+=\ %-y                           " file type
-set statusline+=%=                              " left-right separator
-set statusline+=%{strlen(&fenc)?&fenc:&enc}     " character encoding
-set statusline+=\ \[%{v:operator}\]             " last operator
-set statusline+=\ %5.l,%-3.c                    " current line and column
-set statusline+=\ \[0x%02.B\]                   " ASCII code of current char
-set statusline+=\ %3.p%%                        " scroll position percentage
+set statusline=%{strftime(\"%I:%M\")}                   " current time
+set statusline+=\ \(%{v:shell_error?\"FAIL:\":\"OK:\"}  " FAIL or OK depending on last shell cmd
+set statusline+=\ %{v:shell_error}\)                    " exit code of last shell cmde
+set statusline+=\ %m                                    " modified flag
+set statusline+=\ %-.30F                                " last 30 chars of file name
+set statusline+=\ %-y                                   " file type
+set statusline+=%=                                      " left-right separator
+set statusline+=%{strlen(&fenc)?&fenc:&enc}             " character encoding
+set statusline+=\ \[%{v:operator}\]                     " last operator
+set statusline+=\ %5.l,%-3.c                            " current line and column
+set statusline+=\ \[0x%02.B\]                           " ASCII code of current char
+set statusline+=\ %3.p%%                                " scroll position percentage
 
 " Always highlight tabs and trailing spaces.
 set list
