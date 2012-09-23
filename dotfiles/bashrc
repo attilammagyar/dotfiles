@@ -14,4 +14,11 @@ alias :tabe='vim'
 alias xterm='/usr/bin/xterm -fa Monaco -fs 12 -fullscreen'
 
 PS1="\n\[\033[1;37m\]--( \$PROMPT_EXTRA \u@\[\033[1;33m\]\h\[\033[1;37m\][\t] \$(__x=\$?; if [ \$__x -ne 0 ]; then echo -n \"\[\033[1;31m\]>\$__x<\"; else echo -n \"\[\033[1;32m\]<\$__x>\"; fi) \[\033[1;35m\]\$(echo '\w' | rev | cut -c -33 | rev | sed -r 's/...(.{30})/...\1/')\[\033[1;34m\]\$(git branch 2>/dev/null | grep '^[*]' | head -n1 | cut -d' ' -f2- | sed 's/^/ @/')\[\033[1;37m\] )--\n\[\033[1;37m\]\\\$ \[\033[0m\]"
-PS1="\[\e]0;\$PROMPT_INFO \u@\h: \w\a\]$PS1"
+
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;\$PROMPT_EXTRA \u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
