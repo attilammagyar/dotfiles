@@ -118,12 +118,21 @@ nnoremap <F4> :GitBlame<CR>
 " Pressing F5 will invoke a bash shell and return to the window right after.
 nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
 
-" Pressing F7 will attempt to invoke unit tests through a shell script named
-" run_tests.sh and open the output in a new window in case of failure.
-nnoremap <F7> :!clear;run_tests.sh /tmp/__test_output<CR><CR>:if shell_error!=0<CR>:14split + /tmp/__test_output<CR><CR>:endif<CR><CR>
-
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
+
+" Pressing F9 will attempt to invoke unit tests through a shell script named
+" run_tests.sh and open the output in a new window in case of failure.
+function RunTests()
+    :!clear; run_tests.sh /tmp/__test_output
+    :if shell_error!=0
+        :14split + /tmp/__test_output
+        :hi StatusLine ctermfg=darkred ctermbg=white
+    :else
+        :hi StatusLine ctermfg=darkgreen ctermbg=black
+    :endif
+endfunction
+nnoremap <F9> :exec RunTests() <CR><CR>
 
 " Pressing F10 will re-run the last colon command
 nnoremap <F10> :!clear <CR> q:k <CR>
