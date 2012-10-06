@@ -137,9 +137,6 @@ function RunTests()
 endfunction
 nnoremap <F9> :exec RunTests() <CR><CR>
 
-" Pressing F10 will re-run the last colon command
-nnoremap <F10> :!clear <CR> q:k <CR>
-
 " Pressing F12 will toggle highlighting the current cursor position.
 highlight CursorLine   term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
 highlight CursorColumn term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
