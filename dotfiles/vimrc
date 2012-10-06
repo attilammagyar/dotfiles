@@ -96,6 +96,9 @@ command Q :q
 command W :w
 command Wq :wq
 command WQ :wq
+command Wqall :wqall
+command WQall :wqall
+command WQAll :wqall
 
 " Automatically change directory to the one containing the current file.
 autocmd BufEnter * silent! lcd %:p:h
