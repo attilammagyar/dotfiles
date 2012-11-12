@@ -142,6 +142,13 @@ highlight CursorLine   term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
 highlight CursorColumn term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
 nnoremap <F12> :set cursorline! cursorcolumn!<CR>
 
+" Pressing 't' will jump to the next search pattern match and bring it to the
+" center
+nnoremap t nzz
+" Pressing 'T' will jump to the last search pattern match and bring it to the
+" center
+nnoremap T Nzz
+
 " Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
 " filename will most likely be ignored by any .gitignore files without any
 " additional work. Requires ctags.sh to be on PATH.
