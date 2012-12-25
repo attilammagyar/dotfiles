@@ -33,8 +33,43 @@ gti()
     return $?
 }
 
-PS1="\n\[\033[1;37m\]--( \$PROMPT_EXTRA \u@\[\033[1;33m\]\h\[\033[1;37m\][\t] \$(__x=\$?; if [ \$__x -ne 0 ]; then echo -n \"\[\033[1;31m\]>\$__x<\"; else echo -n \"\[\033[1;32m\]<\$__x>\"; fi) \[\033[1;35m\]\$(echo '\w' | rev | cut -c -33 | rev | sed -r 's/...(.{30})/...\1/')\[\033[1;34m\]\$(git branch 2>/dev/null | grep '^[*]' | head -n1 | cut -d' ' -f2- | sed 's/^/ @/')\[\033[1;37m\] )--\n\[\033[1;37m\]\\\$ \[\033[0m\]"
+LIGHTRED='\[\033[1;31m\]'
+LIGHTGREEN='\[\033[1;32m\]'
+YELLOW='\]\033[1;33m\]'
+LIGHTBLUE='\]\033[1;34m\]'
+PURPLE='\]\033[1;35m\]'
+WHITE='\]\033[1;37m\]'
+NOCOLOR='\[\033[0m\]'
 
+# Prompt
+# ------
+
+# Start with a newline as some commands don't end their output with one
+PS1="\n$WHITE--("
+
+# Integration with my .vimrc that exports a variable for shells started from vim
+PS1="$PS1 \$PROMPT_EXTRA"
+
+# username@hostname[hh:mm:ss]
+PS1="$PS1 \u@$YELLOW\h$WHITE[\t]"
+
+# Exit code of the last command: green "<0>" or red ">NON-ZERO<"
+PS1="$PS1 \$(__x=\$?; if [ \$__x -ne 0 ]; then"
+PS1="$PS1 echo -n \"$LIGHTRED>\$__x<\";"
+PS1="$PS1 else echo -n \"$LIGHTGREEN<\$__x>\"; fi)"
+
+# Last 30 characters of current working directory with 3 dots when truncated
+PS1="$PS1 $PURPLE"
+PS1="$PS1\$(echo '\w' | rev | cut -c -33 | rev | sed -r 's/...(.{30})/...\1/')"
+
+# When inside a git repo, display the name of the current working branch
+PS1="$PS1 $LIGHTBLUE\$(git branch 2>/dev/null | grep '^[*]'"
+PS1="$PS1 | head -n1 | cut -d' ' -f2- | sed 's/^/@/')"
+
+# New command can be entered in a new line
+PS1="$PS1$WHITE )--\n$WHITE\\\$ $NOCOLOR"
+
+# Adjust the title of a gnome-terminal window
 case "$TERM" in
 xterm*|rxvt*)
     PS1="\[\e]0;\$PROMPT_EXTRA \u@\h: \w\a\]$PS1"
