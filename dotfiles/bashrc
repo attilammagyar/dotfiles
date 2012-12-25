@@ -1,8 +1,8 @@
-export PATH="~/bin:$PATH"
+export PATH=~/"bin:$PATH"
 export GIT_EDITOR="vim"
 export EDITOR="vim"
 
-export JUNIT_HOME="~/java/junit4.9"
+export JUNIT_HOME=~/"java/junit4.9"
 export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.9.jar"
 
 export CC=colorgcc
