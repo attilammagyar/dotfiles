@@ -67,7 +67,7 @@ PS1="$PS1 $LIGHTBLUE\$(git branch 2>/dev/null | grep '^[*]'"
 PS1="$PS1 | head -n1 | cut -d' ' -f2- | sed 's/^/@/')"
 
 # New command can be entered in a new line
-PS1="$PS1$WHITE )--\n$WHITE\\\$ $NOCOLOR"
+PS1="$PS1$WHITE )--\n\\\$ $NOCOLOR"
 
 # Adjust the title of a gnome-terminal window
 case "$TERM" in
