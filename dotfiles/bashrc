@@ -38,6 +38,7 @@ LIGHTGREEN='\[\033[1;32m\]'
 YELLOW='\]\033[1;33m\]'
 LIGHTBLUE='\]\033[1;34m\]'
 LIGHTPURPLE='\]\033[1;35m\]'
+LIGHTCYAN='\]\033[1;36m\]'
 WHITE='\]\033[1;37m\]'
 NOCOLOR='\[\033[0m\]'
 
@@ -57,6 +58,11 @@ PS1="$PS1 \u@$YELLOW\h$WHITE[\t]"
 PS1="$PS1 \$(__x=\$?; if [ \$__x -ne 0 ]; then"
 PS1="$PS1 echo -n \"$LIGHTRED>\$__x<\";"
 PS1="$PS1 else echo -n \"$LIGHTGREEN<\$__x>\"; fi)"
+
+# Display battery info if available
+PS1="$PS1$LIGHTCYAN\$(acpi -b |"
+PS1="$PS1 sed -r 's/^.*(: ([a-z])[a-z]*, ([0-9]*%)).*\$/ [\\2\\3]/i' |"
+PS1="$PS1 grep --color=never -m1 '^ \\\\[.*\\\\]\$')"
 
 # Last 30 characters of current working directory with 3 dots when truncated
 PS1="$PS1 $LIGHTPURPLE"
