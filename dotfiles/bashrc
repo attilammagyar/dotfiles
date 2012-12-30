@@ -75,7 +75,7 @@ PS1="$PS1 | head -n1 | cut -d' ' -f2- | sed 's/^/ @/')"
 # New command can be entered in a new line
 PS1="$PS1 $WHITE)--\n\\\$ $NOCOLOR"
 
-# Adjust the title of a gnome-terminal window
+# Adjust the title of the terminal window
 case "$TERM" in
 xterm*|rxvt*)
     PS1="\[\e]0;\$PROMPT_EXTRA \u@\h: \w\a\]$PS1"
