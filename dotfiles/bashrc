@@ -54,7 +54,7 @@ PS1="$PS1 \${PROMPT_EXTRA}"
 # username@hostname[hh:mm:ss]
 PS1="$PS1 \u@$YELLOW\h$WHITE[\t]"
 
-# Exit code of the last command: green "<0>" or red ">NON-ZERO<"
+# Exit code of the latest command: green "<0>" or red ">NON-ZERO<"
 PS1="$PS1 \$(__x=\$?; if [[ \$__x -ne 0 ]]; then"
 PS1="$PS1 echo -n \"$LIGHTRED>\$__x<\";"
 PS1="$PS1 else echo -n \"$LIGHTGREEN<\$__x>\"; fi)"
@@ -72,7 +72,7 @@ PS1="$PS1\$(echo '\w' | rev | cut -c -33 | rev | sed -r 's/...(.{30})/...\1/')"
 PS1="$PS1$LIGHTBLUE\$(git branch 2>/dev/null | grep '^[*]'"
 PS1="$PS1 | head -n1 | cut -d' ' -f2- | sed 's/^/ @/')"
 
-# New command can be entered in a new line
+# New command to be entered in a new line
 PS1="$PS1 $WHITE)--\n\\\$ $NOCOLOR"
 
 # Adjust the title of the terminal window
