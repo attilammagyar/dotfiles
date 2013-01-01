@@ -55,7 +55,7 @@ PS1="$PS1 \${PROMPT_EXTRA}"
 PS1="$PS1 \u@$YELLOW\h$WHITE[\t]"
 
 # Exit code of the last command: green "<0>" or red ">NON-ZERO<"
-PS1="$PS1 \$(__x=\$?; if [ \$__x -ne 0 ]; then"
+PS1="$PS1 \$(__x=\$?; if [[ \$__x -ne 0 ]]; then"
 PS1="$PS1 echo -n \"$LIGHTRED>\$__x<\";"
 PS1="$PS1 else echo -n \"$LIGHTGREEN<\$__x>\"; fi)"
 
