@@ -103,13 +103,16 @@ command WQAll :wqall
 " Automatically change directory to the one containing the current file.
 autocmd BufEnter * silent! lcd %:p:h
 
-" Pressing F2 will invoke lookup_docs.sh in the PATH with the current filename
+" Pressing K will invoke lookup_docs.sh in the PATH with the current filename
 " and the word under the cursor. That script may attempt to open relevant docs
 " according to the given arguments. Mine guesses file type by it's extension
 " and either looks up the given word in various offline documentation or uses
 " Google depending on file type. See https://gist.github.com/1239536 for my
 " scripts.
-nnoremap <F2> :!lookup_docs.sh "%" "<cword>"<CR><CR>
+nnoremap K :!lookup_docs.sh "%" "<cword>"<CR><CR>
+
+" Pressing F2 will show the complete git history of the file
+nnoremap <F2> :!clear; git log --patch-with-stat --follow "%" \| less -r <CR><CR>
 
 " Pressing F3 will attempt to search the git repository for the current word.
 nnoremap <F3> :!clear;cd "`git rev-parse --show-cdup`";git grep -C3 "<cword>";cd -<CR>
