@@ -24,5 +24,5 @@ fi
 cd "`git rev-parse --show-cdup`" 2>&1 >/dev/null
 run_tests 2>&1 | tee "$output_file"
 exit_code=${PIPESTATUS[0]}
-sleep 1.2
+sleep .7
 exit $exit_code
