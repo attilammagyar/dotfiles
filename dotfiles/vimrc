@@ -30,7 +30,7 @@ set formatoptions+=r
 set formatoptions+=o
 
 " Font name for gVim
-set guifont=Monaco
+set guifont=Monaco\ 11
 
 " Draw a margin in the 81th column
 set colorcolumn=81
@@ -41,11 +41,17 @@ set ruler
 " Command line is 2 lines, so it's easier to type complex commands
 set cmdheight=2
 
+" Hide everything from GUI
+set guioptions=''
+
 " Highlight syntax
 syntax on
 
 " Some nice colorscheme
-colors evening
+colorscheme evening
+if has('gui_running')
+    colorscheme koehler
+endif
 
 " Make constants readable on projector as well
 highlight Constant ctermbg=black ctermfg=green
@@ -103,26 +109,28 @@ command WQAll :wqall
 " Automatically change directory to the one containing the current file.
 autocmd BufEnter * silent! lcd %:p:h
 
-" Pressing K will invoke lookup_docs.sh in the PATH with the current filename
-" and the word under the cursor. That script may attempt to open relevant docs
-" according to the given arguments. Mine guesses file type by it's extension
-" and either looks up the given word in various offline documentation or uses
-" Google depending on file type. See https://gist.github.com/1239536 for my
-" scripts.
-nnoremap K :!lookup_docs.sh "%" "<cword>"<CR><CR>
+if !has('gui_running')
+    " Pressing K will invoke lookup_docs.sh in the PATH with the current filename
+    " and the word under the cursor. That script may attempt to open relevant docs
+    " according to the given arguments. Mine guesses file type by it's extension
+    " and either looks up the given word in various offline documentation or uses
+    " Google depending on file type. See https://gist.github.com/1239536 for my
+    " scripts.
+    nnoremap K :!lookup_docs.sh "%" "<cword>"<CR><CR>
 
-" Pressing F2 will show the complete git history of the file
-nnoremap <F2> :!clear; git log --patch-with-stat --follow "%" \| less -r <CR><CR>
+    " Pressing F2 will show the complete git history of the file
+    nnoremap <F2> :!clear; git log --patch-with-stat --follow "%" \| less -r <CR><CR>
 
-" Pressing F3 will attempt to search the git repository for the current word.
-nnoremap <F3> :!clear;cd "`git rev-parse --show-cdup`";git grep -C3 "<cword>";cd -<CR>
+    " Pressing F3 will attempt to search the git repository for the current word.
+    nnoremap <F3> :!clear;cd "`git rev-parse --show-cdup`";git grep -C3 "<cword>";cd -<CR>
+
+    " Pressing F5 will invoke a bash shell and return to the window right after.
+    nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
+endif
 
 " Pressing F4 will attempt to git-blame the current line.
 command GitBlame :echo system('git blame -L'.line('.').',+1 '.expand('%'))
 nnoremap <F4> :GitBlame<CR>
-
-" Pressing F5 will invoke a bash shell and return to the window right after.
-nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
 
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
@@ -133,9 +141,9 @@ function RunTests()
     :!clear; run_tests.sh /tmp/__test_output
     :if shell_error!=0
         :14split + /tmp/__test_output
-        :hi StatusLine ctermfg=darkred ctermbg=white
+        :hi StatusLine ctermfg=darkred ctermbg=white guibg=darkred guifg=white
     :else
-        :hi StatusLine ctermfg=darkgreen ctermbg=black
+        :hi StatusLine ctermfg=darkgreen ctermbg=black guibg=darkgreen guifg=black
     :endif
 endfunction
 nnoremap <F9> :exec RunTests() <CR><CR>
