@@ -60,7 +60,7 @@ PS1="$PS1 echo -n \"$LIGHTRED>\$__x<\";"
 PS1="$PS1 else echo -n \"$LIGHTGREEN<\$__x>\"; fi)"
 
 # Display battery info if available
-PS1="$PS1$LIGHTCYAN\$(acpi -b |"
+PS1="$PS1$LIGHTCYAN\$(acpi -b 2>/dev/null |"
 PS1="$PS1 sed -r 's/^.*(: ([a-z])[a-z]*, ([0-9]*%)).*\$/ [\\2\\3]/i' |"
 PS1="$PS1 grep --color=never -m1 '^ \\\\[.*\\\\]\$')"
 
