@@ -121,14 +121,15 @@ if !has('gui_running')
     " Pressing F2 will show the complete git history of the file
     nnoremap <F2> :!clear; git log --patch-with-stat --follow "%" \| less -r <CR><CR>
 
-    " Pressing F3 will attempt to search the git repository for the current word.
+    " Pressing F3 will attempt to search the git repository for the word under
+    " cursor.
     nnoremap <F3> :!clear;cd "`git rev-parse --show-cdup`";git grep -C3 "<cword>";cd -<CR>
 
     " Pressing F5 will invoke a bash shell and return to the window right after.
     nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
 endif
 
-" Pressing F4 will attempt to git-blame the current line.
+" Pressing F4 will attempt to git-blame the line under the cursor.
 command GitBlame :echo system('git blame -L'.line('.').',+1 '.expand('%'))
 nnoremap <F4> :GitBlame<CR>
 
