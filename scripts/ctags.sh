@@ -49,8 +49,15 @@ can_be_updated()
 update_tagfile()
 {
     source_file="$1"
+
+    # Ugly hack to overcome Vim's behavior when using project directories that
+    # contain symlinks to actual git repos. In that case, $source_file
+    # contains a resolved path that may be outside of the current directory.
+    # This will lead to the tag file containing absolute paths outside of the
+    # project directory making hard to navigate the source code staying inside
+    # the project directory.
     basename="`basename \"$source_file\"`"
-    relative_path_to_source="`find -type f -name \"$basename\" 2>/dev/null | head -n 1`"
+    relative_path_to_source="`find -L . -type f -name \"$basename\" 2>/dev/null | head -n 1`"
     [ -f "$relative_path_to_source" ] || return 0
     "$CTAGS" --append --sort=yes -f "$TAGFILE_NAME" "$relative_path_to_source"
 }
