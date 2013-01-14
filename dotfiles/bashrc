@@ -64,9 +64,10 @@ PS1="$PS1$LIGHTCYAN\$(acpi -b 2>/dev/null |"
 PS1="$PS1 sed -r 's/^.*(: ([a-z])[a-z]*, ([0-9]*%)).*\$/ [\\2\\3]/i' |"
 PS1="$PS1 grep --color=never -m1 '^ \\\\[.*\\\\]\$')"
 
-# Last ~30 characters of current working directory with 3 dots when truncated
+# Last max 30 characters of current working directory with a less-than sign
+# when truncated
 PS1="$PS1 $LIGHTPURPLE"
-PS1="$PS1\$(echo '\w' | sed -r 's/^.*.{4}(.{30})/...\1/')"
+PS1="$PS1\$(echo '\w' | sed -r 's/^.*.(.{30})/<\1/')"
 
 # When inside a git repo, display the name of the current working branch
 PS1="$PS1$LIGHTBLUE\$(git branch 2>/dev/null | grep -m1 --color=never '^[*] '"
