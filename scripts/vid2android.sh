@@ -67,6 +67,8 @@ function main()
         -ovc lavc -lavcopts vcodec=mpeg4$vbitrate:mbd=2:trell:vpass=2 \
         -oac mp3lame -lameopts vbr=3 \
         $scale -o "$output_video_file"
+
+    rm divx2pass.log
 }
 
 main "$@"
