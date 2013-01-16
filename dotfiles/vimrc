@@ -89,6 +89,9 @@ set statusline+=\ %3.p%%
 set list
 set listchars=tab:>\ ,trail:.,nbsp:.
 
+" Always assume Unix-style line endings
+set fileformats=unix
+
 " Trailing spaces to be highlighted in red.
 highlight WhitespaceEOL term=reverse ctermbg=Red guibg=Red
 match WhitespaceEOL /\s\+$/
