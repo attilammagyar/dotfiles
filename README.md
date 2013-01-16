@@ -23,3 +23,5 @@ Files and directories
                      blog
     * `mntprvt`: mount the encrypted part of my home directory
     * `wifi.sh`: connect to wi-fi from console, without `network-manager`
+    * `gitgrepfight.sh`: compare the number of matches of regular expressions
+                         inside a `git` repository
