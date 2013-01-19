@@ -21,6 +21,7 @@ Files and directories
                      blog
     * `mntprvt`: mount the encrypted part of my home directory
     * `vim_ctags.sh`: `ctags` helper script for my `.vimrc`
+    * `vim_git.sh`: `git` helper script for my `.vimrc`
     * `vim_lookup_docs.sh`: API documentation finder for my `.vimrc`
     * `vim_run_tests.sh`: test runner script for my `.vimrc`
     * `wifi.sh`: connect to wi-fi from console, without `network-manager`
