@@ -110,13 +110,12 @@ command WQall :wqall
 command WQAll :wqall
 
 if !has('gui_running')
-    " Pressing K will invoke lookup_docs.sh in the PATH with the current filename
-    " and the word under the cursor. That script may attempt to open relevant docs
-    " according to the given arguments. Mine guesses file type by it's extension
-    " and either looks up the given word in various offline documentation or uses
-    " Google depending on file type. See https://gist.github.com/1239536 for my
-    " scripts.
-    nnoremap K :!lookup_docs.sh "%" "<cword>"<CR><CR>
+    " Pressing K will invoke vim_lookup_docs.sh in the PATH with the current
+    " filename and the word under the cursor. That script may attempt to open
+    " relevant docs according to the given arguments. Mine guesses file type
+    " by it's extension and either looks up the given word in various offline
+    " documentation or uses Google depending on file type.
+    nnoremap K :!vim_lookup_docs.sh "%" "<cword>"<CR><CR>
 
     " Pressing F2 will show the complete git history of the file
     nnoremap <F2> :!clear; git log --patch-with-stat --follow "%" \| less -r <CR><CR>
@@ -137,9 +136,9 @@ nnoremap <F4> :GitBlame<CR>
 nnoremap <F8> :nohl<CR>
 
 " Pressing F9 will attempt to invoke unit tests through a shell script named
-" run_tests.sh and open the output in a new window in case of failure.
+" vim_run_tests.sh and open the output in a new window in case of failure.
 function RunTests()
-    :!clear; run_tests.sh /tmp/__test_output
+    :!clear; vim_run_tests.sh /tmp/__test_output
     :if shell_error!=0
         :14split + /tmp/__test_output
         :hi StatusLine ctermfg=darkred ctermbg=white guibg=darkred guifg=white
@@ -163,10 +162,10 @@ nnoremap T Nzz
 
 " Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
 " filename will most likely be ignored by any .gitignore files without any
-" additional work. Requires ctags.sh to be on PATH.
+" additional work. Requires vim_ctags.sh to be on PATH.
 set tags=.tags.pyc,../.tags.pyc,../../.tags.pyc,../../../.tags.pyc,
 set tags+=../../../../.tags.pyc,../../../../../.tags.pyc
-command Ctags silent! !ctags.sh ".tags.pyc" "%" &
+command Ctags silent! !vim_ctags.sh ".tags.pyc" "%" &
 autocmd BufWritePost *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php* Ctags
 autocmd BufWritePost *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh Ctags
 Ctags
