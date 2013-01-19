@@ -173,6 +173,8 @@ Ctags
 
 " Turn on wrapping for text files.
 autocmd BufNewFile,BufRead *.txt,*.md set textwidth=78
+autocmd BufNewFile,BufRead *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php set textwidth=0
+autocmd BufNewFile,BufRead *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh set textwidth=0
 
 " Highlight text files as Markdown
 autocmd BufNewFile,BufRead *.txt,*.md set filetype=markdown
