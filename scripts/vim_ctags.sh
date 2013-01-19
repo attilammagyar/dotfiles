@@ -1,73 +1,54 @@
 #!/bin/bash
 
 CTAGS="ctags"
-TAGFILE_NAME=""
 
-pwd="`pwd`"
-
-main()
+function main()
 {
-    TAGFILE_NAME="$1"
+    tag_file="$1"
     source_file="$2"
 
-    [ -z "$TAGFILE_NAME" ] && return 0
-    [ -z "$source_file" ] && return 0
-    [ ! -f "$source_file" ] && return 0
+    [[ -z "$tag_file" ]] && return 0
+    [[ -z "$source_file" ]] && return 0
+    [[ ! -f "$tag_file" ]] && return 0
+    [[ ! -f "$source_file" ]] && return 0
     which "$CTAGS" || return 0
-    cd_to_tagfile || return 0
 
-    if can_be_updated
+    if can_be_updated "$tag_file"
     then
-        update_tagfile "$source_file"
+        update_tagfile "$tag_file" "$source_file"
     else
-        rebuild_tagfile
+        rebuild_tagfile "$tag_file"
     fi
 }
 
-cd_to_tagfile()
+function can_be_updated()
 {
-    while [ ! -f "$TAGFILE_NAME" -a "`pwd`" != "/" ]
-    do
-        cd .. || return 1
-    done
-    [ "x`pwd`" = "x/" ] && return 2
-    return 0
-}
+    tag_file="$1"
 
-can_be_updated()
-{
-    [ -s "$TAGFILE_NAME" ] || return 1
+    [[ -s "$tag_file" ]] || return 1
 
-    last_modified_timestamp="`stat -c\"%Y\" \"$TAGFILE_NAME\"`"
+    last_modified_timestamp="`stat -c\"%Y\" \"$tag_file\"`"
     now="`date \"+%s\"`"
     too_old=$(($now-7200))
 
-    [ $last_modified_timestamp -gt $too_old ] || return 2
+    [[ $last_modified_timestamp -gt $too_old ]] || return 2
     return 0
 }
 
-update_tagfile()
+function update_tagfile()
 {
-    source_file="$1"
+    tag_file="$1"
+    source_file="$2"
 
-    # Ugly hack to overcome Vim's behavior when using project directories that
-    # contain symlinks to actual git repos. In that case, $source_file
-    # contains a resolved path that may be outside of the current directory.
-    # This will lead to the tag file containing absolute paths outside of the
-    # project directory making hard to navigate the source code staying inside
-    # the project directory.
-    basename="`basename \"$source_file\"`"
-    relative_path_to_source="`find -L . -type f -name \"$basename\" 2>/dev/null | head -n 1`"
-    [ -f "$relative_path_to_source" ] || return 0
-    "$CTAGS" --append --sort=yes -f "$TAGFILE_NAME" "$relative_path_to_source"
+    "$CTAGS" --append --sort=yes -f "$tag_file" "$source_file"
 }
 
-rebuild_tagfile()
+function rebuild_tagfile()
 {
-    "$CTAGS" --sort=yes -Rf "$TAGFILE_NAME" *
+    tag_file="$1"
+
+    "$CTAGS" --sort=yes -Rf "$tag_file" *
 }
 
 main "$@" >/dev/null 2>/dev/null
-exit_code=$?
-cd "$pwd"
-exit $exit_code
+exit 0
