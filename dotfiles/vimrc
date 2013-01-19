@@ -169,6 +169,10 @@ autocmd BufWritePost *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php* Ctags
 autocmd BufWritePost *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh Ctags
 Ctags
 
+" Map usual tag shortcuts to use tabs
+map <C-]> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
+map <C-t> :tabprevious<CR>
+
 " Turn on wrapping for text files.
 autocmd BufNewFile,BufRead *.txt,*.md set textwidth=78
 autocmd BufNewFile,BufRead *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php set textwidth=0
