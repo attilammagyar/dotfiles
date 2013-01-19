@@ -121,7 +121,7 @@ if !has('gui_running')
     nnoremap <F2> :!clear; vim_git.sh log "%"<CR><CR>
 
     " Pressing F3 will search the git repository for the word under the cursor.
-    nnoremap <F3> :!clear; vim_git.sh grep "%" "<cword>"<CR>
+    nnoremap <F3> :!clear; vim_git.sh grep "%" "<cword>"<CR><CR>
 
     " Pressing F5 will invoke a bash shell and return to the window right after.
     nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
