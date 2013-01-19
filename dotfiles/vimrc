@@ -163,8 +163,7 @@ nnoremap T Nzz
 " Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
 " filename will most likely be ignored by any .gitignore files without any
 " additional work. Requires vim_ctags.sh to be on PATH.
-set tags=.tags.pyc,../.tags.pyc,../../.tags.pyc,../../../.tags.pyc,
-set tags+=../../../../.tags.pyc,../../../../../.tags.pyc
+set tags=./.tags.pyc;/
 command Ctags silent! !vim_ctags.sh ".tags.pyc" "%" &
 autocmd BufWritePost *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php* Ctags
 autocmd BufWritePost *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh Ctags
