@@ -109,9 +109,6 @@ command Wqall :wqall
 command WQall :wqall
 command WQAll :wqall
 
-" Automatically change directory to the one containing the current file.
-autocmd BufEnter * silent! lcd %:p:h
-
 if !has('gui_running')
     " Pressing K will invoke lookup_docs.sh in the PATH with the current filename
     " and the word under the cursor. That script may attempt to open relevant docs
