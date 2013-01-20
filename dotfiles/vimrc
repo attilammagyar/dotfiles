@@ -7,9 +7,6 @@ set tabstop=4
 " Indentation is 4 spaces
 set shiftwidth=4
 
-" Insert 4 spaces instead of tabs
-set expandtab
-
 " Automatic indentation
 set autoindent
 set smartindent
@@ -188,3 +185,13 @@ autocmd BufNewFile,BufRead *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh set textwidth=0
 
 " Highlight text files as Markdown
 autocmd BufNewFile,BufRead *.txt,*.md set filetype=markdown
+
+" Use tabs in Makefiles, spaces in anything else for indentation
+function! SetTabExpansion()
+    :if empty(matchstr(expand('%'), '\(^\|/\)[Mm]akefile\(\.am\)\?$'))
+        :set expandtab
+    :else
+        :set noexpandtab
+    :endif
+endfunction
+autocmd BufNewFile,BufRead * exec SetTabExpansion()
