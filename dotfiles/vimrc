@@ -147,6 +147,15 @@ function RunTests()
 endfunction
 nnoremap <F9> :exec RunTests() <CR><CR>
 
+" Ctrl+o will open explorer in a vertical split window
+nnoremap <C-o> :Texplore<CR>
+
+" Set default view mode for explorer to tree
+let g:netrw_liststyle=3
+
+" Make explorer hide Vim's swap files
+let g:netrw_list_hide='.*\.swp$'
+
 " Pressing F12 will toggle highlighting the current cursor position.
 highlight CursorLine   term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
 highlight CursorColumn term=reverse cterm=NONE ctermbg=darkblue guibg=darkblue
