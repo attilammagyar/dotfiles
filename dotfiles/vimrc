@@ -145,7 +145,8 @@ endfunction
 nnoremap <F9> :exec RunTests() <CR><CR>
 
 " Ctrl+o will open explorer in a vertical split window
-nnoremap <C-o> :Texplore<CR>
+nnoremap <C-o> :Texplore<CR>:set cursorline<CR>
+autocmd BufNewFile,BufRead * set nocursorline
 
 " Set default view mode for explorer to tree
 let g:netrw_liststyle=3
