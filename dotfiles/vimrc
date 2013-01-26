@@ -166,6 +166,11 @@ nnoremap t nzz
 " center
 nnoremap T Nzz
 
+" Cut, copy and paste between Vim and system clipboard
+vnoremap <C-c> <CR>"+y
+vnoremap <C-x> <CR>"+d
+nnoremap <C-v> :set paste<CR>"+p:set nopaste<CR>
+
 " Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
 " filename will most likely be ignored by any .gitignore files without any
 " additional work. Requires vim_ctags.sh to be on PATH.
