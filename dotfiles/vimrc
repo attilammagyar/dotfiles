@@ -189,19 +189,24 @@ map <C-]> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 map <C-t> :tabprevious<CR>
 
 " Turn on wrapping for text files.
-autocmd BufNewFile,BufRead *.txt,*.md set textwidth=78
-autocmd BufNewFile,BufRead *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php set textwidth=0
-autocmd BufNewFile,BufRead *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh set textwidth=0
+function! ToggleWrapping()
+    :if empty(matchstr(expand('%'), '\.\(txt\|md\)$'))
+        :set textwidth=0
+    :else
+        :set textwidth=78
+    :endif
+endfunction
+autocmd BufNewFile,BufRead * exec ToggleWrapping()
 
 " Highlight text files as Markdown
 autocmd BufNewFile,BufRead *.txt,*.md set filetype=markdown
 
 " Use tabs in Makefiles, spaces in anything else for indentation
-function! SetTabExpansion()
+function! ToggleTabExpansion()
     :if empty(matchstr(expand('%'), '\(^\|/\)[Mm]akefile\(\.am\)\?$'))
         :set expandtab
     :else
         :set noexpandtab
     :endif
 endfunction
-autocmd BufNewFile,BufRead * exec SetTabExpansion()
+autocmd BufNewFile,BufRead * exec ToggleTabExpansion()
