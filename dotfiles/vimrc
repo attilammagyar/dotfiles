@@ -1,11 +1,15 @@
 " Turn on line numbers
 set number
 
-" Tabs are displayed as 4 characters wide
-set tabstop=4
-
-" Indentation is 4 spaces
-set shiftwidth=4
+" Indent *.feature files by 2 spaces, anything else by 4
+function! SetIndentation()
+    :if empty(matchstr(expand('%'), '\.feature$'))
+        :set tabstop=4 shiftwidth=4
+    :else
+        :set tabstop=2 shiftwidth=2
+    :endif
+endfunction
+autocmd BufNewFile,BufRead * exec SetIndentation()
 
 " Automatic indentation
 set autoindent
