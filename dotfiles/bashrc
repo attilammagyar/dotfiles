@@ -33,6 +33,12 @@ gti()
     return $?
 }
 
+composer()
+{
+    php ~/dev-tools/php/composer/composer.phar "$@"
+    return $?
+}
+
 LIGHTRED='\[\033[1;31m\]'
 LIGHTGREEN='\[\033[1;32m\]'
 YELLOW='\[\033[1;33m\]'
