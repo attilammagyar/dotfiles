@@ -176,13 +176,16 @@ vnoremap <C-x> <CR>"+d
 nnoremap <C-v> :set paste<CR>"+p:set nopaste<CR>
 
 " Comment/Uncomment lines of code
-let b:comment_leader = '# '
-autocmd FileType c,h,hpp,cpp,java,php,js    let b:comment_leader = '// '
-autocmd FileType sh,ruby,python             let b:comment_leader = '# '
-autocmd FileType mail                       let b:comment_leader = '> '
-autocmd FileType vim                        let b:comment_leader = '" '
-noremap <silent> <C-C> :<C-B>silent <C-E>s/^\( *\)/\1<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:nohlsearch<CR>
-noremap <silent> <C-U> :<C-B>silent <C-E>s/^\( *\)\V<C-R>=escape(b:comment_leader,'\/')<CR>/\1/e<CR>:nohlsearch<CR>
+let b:cmt_leader = '# '
+let b:cmt_tail = ''
+autocmd FileType c,h                    let b:cmt_leader = '/* '
+autocmd FileType c,h                    let b:cmt_tail = ' */'
+autocmd FileType hpp,cpp,java,php,js    let b:cmt_leader = '// '
+autocmd FileType sh,ruby,python         let b:cmt_leader = '# '
+autocmd FileType mail                   let b:cmt_leader = '> '
+autocmd FileType vim                    let b:cmt_leader = '" '
+noremap <silent> <C-M> :<C-B>silent <C-E>s/^\( *\)\(.*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
+noremap <silent> <C-U> :<C-B>silent <C-E>s/^\( *\)<C-R>=escape(b:cmt_leader,'\/*')<CR>\(.*\)<C-R>=escape(b:cmt_tail,'\/*')<CR>$/\1\2/e<CR>:nohlsearch<CR>
 
 " Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
 " filename will most likely be ignored by any .gitignore files without any
