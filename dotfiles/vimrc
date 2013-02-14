@@ -222,3 +222,9 @@ function! ToggleTabExpansion()
     :endif
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleTabExpansion()
+
+" Experimenting with habit breaking
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
