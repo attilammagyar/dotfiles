@@ -174,14 +174,14 @@ vnoremap <C-x> <CR>"+d
 nnoremap <C-v> :set paste<CR>"+p:set nopaste<CR>
 
 " Comment/Uncomment lines of code
-let b:cmt_leader = '# '
-let b:cmt_tail = ''
-autocmd FileType c,h                    let b:cmt_leader = '/* '
-autocmd FileType c,h                    let b:cmt_tail = ' */'
-autocmd FileType hpp,cpp,java,php,js    let b:cmt_leader = '// '
-autocmd FileType sh,ruby,python         let b:cmt_leader = '# '
-autocmd FileType mail                   let b:cmt_leader = '> '
-autocmd FileType vim                    let b:cmt_leader = '" '
+autocmd BufEnter *                              let b:cmt_leader = '# '
+autocmd BufEnter *                              let b:cmt_tail = ''
+autocmd BufEnter *.c,*.h                        let b:cmt_leader = '/* '
+autocmd BufEnter *.c,*.h                        let b:cmt_tail = ' */'
+autocmd BufEnter *.hpp,*.cpp,*.java,*.php,*.js  let b:cmt_leader = '// '
+autocmd BufEnter *.sh,*.ruby,*.python           let b:cmt_leader = '# '
+autocmd BufEnter *.mail                         let b:cmt_leader = '> '
+autocmd BufEnter *.vim                          let b:cmt_leader = '" '
 noremap <silent> <C-M> :<C-B>silent <C-E>s/^\( *\)\(.*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
 noremap <silent> <C-U> :<C-B>silent <C-E>s/^\( *\)<C-R>=escape(b:cmt_leader,'\/*')<CR>\(.*\)<C-R>=escape(b:cmt_tail,'\/*')<CR>$/\1\2/e<CR>:nohlsearch<CR>
 
