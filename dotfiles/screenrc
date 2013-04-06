@@ -4,6 +4,6 @@ autodetach on
 defscrollback 5000
 hardstatus alwayslastline
 hardstatus string '[%c] %w'
-screen 0 vim
+screen 0 bash
 screen 1 bash
 screen 2 bash
