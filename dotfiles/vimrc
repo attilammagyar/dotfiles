@@ -148,6 +148,12 @@ function! RunTests()
 endfunction
 nnoremap <F9> :exec RunTests() <CR><CR>
 
+" Pressing F11 will interactively build a git commit
+nnoremap <F11> :!clear ; vim_git.sh commit_selection "%"<CR><CR>
+
+" Pressing F12 will commit everything into git
+nnoremap <F12> :!clear ; vim_git.sh commit_all "%"<CR><CR>
+
 " Highlight current line of cursor
 highlight CursorLine term=underline cterm=underline
 set cursorline!
