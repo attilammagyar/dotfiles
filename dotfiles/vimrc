@@ -125,7 +125,7 @@ if !has('gui_running')
     nnoremap <F3> :!clear; vim_git.sh grep "%" "<cword>"<CR><CR>
 
     " Pressing F5 will invoke a bash shell and return to the window right after.
-    nnoremap <F5> :! clear; PROMPT_EXTRA='[VIM]' bash<CR><CR>
+    nnoremap <F5> :! clear; PROMPT_EXTRA='[V]' bash<CR><CR>
 endif
 
 " Pressing F4 will attempt to git-blame the line under the cursor.

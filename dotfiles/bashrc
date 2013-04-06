@@ -52,7 +52,7 @@ NOCOLOR='\[\033[0m\]'
 # ------
 
 # Start with a newline as some commands don't end their output with one
-PS1="\n$WHITE--("
+PS1="\n$WHITE-("
 
 # Integration with my .vimrc that exports a variable for shells started from vim
 PS1="$PS1 \${PROMPT_EXTRA}"
@@ -80,7 +80,7 @@ PS1="$PS1$LIGHTBLUE\$(git branch 2>/dev/null | grep -m1 --color=never '^[*] '"
 PS1="$PS1 | sed 's/^[*] / @/')"
 
 # New command to be entered in a new line
-PS1="$PS1 $WHITE)--\n\\\$ $NOCOLOR"
+PS1="$PS1 $WHITE)-\n\\\$ $NOCOLOR"
 
 # Adjust the title of the terminal window
 case "$TERM" in
