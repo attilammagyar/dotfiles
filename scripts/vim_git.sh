@@ -64,7 +64,7 @@ function git_commit_all()
 function git_commit_selection()
 {
     git_cd_to_root
-    git add -p .
+    git add --interactive
     git commit --verbose
 }
 
