@@ -177,7 +177,7 @@ nnoremap T Nzz
 " Cut, copy and paste between Vim and system clipboard
 vnoremap <C-c> <CR>"+y
 vnoremap <C-x> <CR>"+d
-nnoremap <C-v> :set paste<CR>"+p:set nopaste<CR>
+inoremap <C-v> <Esc>:set paste<CR>"+p:set nopaste<CR>i
 
 " Comment/Uncomment lines of code
 autocmd BufEnter *                              let b:cmt_leader = '# '
