@@ -11,7 +11,7 @@ main()
     make_target="$1"
 
     project_root=$(find_project_root)
-    [ "x$project_root" = "x/" ] && error 1 "unable to find project root directory"
+    [[ "x$project_root" = "x/" ]] && error 1 "unable to find project root directory"
 
     project_name="`basename $project_root`"
     create_build_directories "$project_name"
