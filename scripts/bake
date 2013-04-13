@@ -116,5 +116,5 @@ try_make()
     return 0
 }
 
-main $@
+time main $@
 exit $?
