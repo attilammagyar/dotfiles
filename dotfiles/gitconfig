@@ -2,6 +2,7 @@
     log = auto
     diff = auto
     status = auto
+    grep = auto
 [log]
     decorate = true
 [merge]
