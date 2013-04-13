@@ -3,11 +3,11 @@ set number
 
 " Indent *.feature files by 2 spaces, anything else by 4
 function! SetIndentation()
-    :if empty(matchstr(expand('%'), '\.feature$'))
-        :set tabstop=4 shiftwidth=4
-    :else
-        :set tabstop=2 shiftwidth=2
-    :endif
+    if empty(matchstr(expand('%'), '\.feature$'))
+        set tabstop=4 shiftwidth=4
+    else
+        set tabstop=2 shiftwidth=2
+    endif
 endfunction
 autocmd BufNewFile,BufRead * exec SetIndentation()
 
@@ -138,13 +138,13 @@ nnoremap <F8> :nohl<CR>
 " Pressing F9 will attempt to invoke unit tests through a shell script named
 " vim_run_tests.sh and open the output in a new window in case of failure.
 function! RunTests()
-    :!clear; vim_run_tests.sh /tmp/__test_output
-    :if shell_error!=0
-        :14split + /tmp/__test_output
-        :hi StatusLine ctermfg=darkred ctermbg=white guibg=darkred guifg=white
-    :else
-        :hi StatusLine ctermfg=darkgreen ctermbg=black guibg=darkgreen guifg=black
-    :endif
+    !clear; vim_run_tests.sh /tmp/__test_output
+    if shell_error!=0
+        14split + /tmp/__test_output
+        hi StatusLine ctermfg=darkred ctermbg=white guibg=darkred guifg=white
+    else
+        hi StatusLine ctermfg=darkgreen ctermbg=black guibg=darkgreen guifg=black
+    endif
 endfunction
 nnoremap <F9> :exec RunTests() <CR><CR>
 
@@ -205,11 +205,11 @@ map <C-t> :tabprevious<CR>
 
 " Turn on wrapping for text files.
 function! ToggleWrapping()
-    :if empty(matchstr(expand('%'), '\.\(txt\|md\)$'))
-        :set textwidth=0
-    :else
-        :set textwidth=78
-    :endif
+    if empty(matchstr(expand('%'), '\.\(txt\|md\)$'))
+        set textwidth=0
+    else
+        set textwidth=78
+    endif
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleWrapping()
 
@@ -218,18 +218,18 @@ autocmd BufNewFile,BufRead *.txt,*.md set filetype=markdown
 
 " Use tabs in Makefiles, spaces in anything else for indentation
 function! ToggleTabExpansion()
-    :if empty(matchstr(expand('%'), '\(^\|/\)[Mm]akefile\(\.am\)\?$'))
-        :set expandtab
-    :else
-        :set noexpandtab
-    :endif
+    if empty(matchstr(expand('%'), '\(^\|/\)[Mm]akefile\(\.am\)\?$'))
+        set expandtab
+    else
+        set noexpandtab
+    endif
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleTabExpansion()
 
 " The command :Find d*f.txt will open the first file matching the given path,
 " e.g. 'dir/file.txt' in a new tab.
 function! Find(pattern)
-    :exec 'tabe ' . system('find -path "*' . a:pattern . '*" | head -n1')
+    exec 'tabe ' . system('find -path "*' . a:pattern . '*" | head -n1')
 endfunction
 command! -nargs=1 Find call Find('<args>')
 
