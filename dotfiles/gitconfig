@@ -9,3 +9,5 @@
     log = 200
 [core]
     excludesfile = ~/.gitignore
+[diff]
+    renames = true
