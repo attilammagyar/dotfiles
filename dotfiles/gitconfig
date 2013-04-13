@@ -7,3 +7,5 @@
     decorate = true
 [merge]
     log = 200
+[core]
+    excludesfile = ~/.gitignore

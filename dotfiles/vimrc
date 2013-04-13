@@ -191,11 +191,10 @@ autocmd BufEnter *.vim                          let b:cmt_leader = '" '
 noremap <silent> <C-E> :<C-B>silent <C-E>s/^\( *\)\(.*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
 noremap <silent> <C-U> :<C-B>silent <C-E>s/^\( *\)<C-R>=escape(b:cmt_leader,'\/*')<CR>\(.*\)<C-R>=escape(b:cmt_tail,'\/*')<CR>$/\1\2/e<CR>:nohlsearch<CR>
 
-" Use .tags.pyc as a tagfile to offer suggestions when pressing Ctrl+P. This
-" filename will most likely be ignored by any .gitignore files without any
-" additional work. Requires vim_ctags.sh to be on PATH.
-set tags=./.tags.pyc;/
-command! Ctags silent! !vim_ctags.sh ".tags.pyc" "%" &
+" Use .vim_tags as a tagfile to offer suggestions when pressing Ctrl+P.
+" Requires vim_ctags.sh to be on PATH.
+set tags=./.vim_tags;/
+command! Ctags silent! !vim_ctags.sh ".vim_tags" "%" &
 autocmd BufWritePost *.c,*.cpp,*.cc,*.h,*.hpp,*.hh,*.php* Ctags
 autocmd BufWritePost *.js,*.java,*.py,*.pl,*.rb,*.cs,*.sh Ctags
 Ctags
