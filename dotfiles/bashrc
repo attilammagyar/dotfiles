@@ -9,6 +9,8 @@ export CC=colorgcc
 export CFLAGS="-pipe"
 export MAKEFLAGS="-j2"
 
+export GREP_OPTIONS="--color=auto"
+
 alias :q='exit'
 alias :edit='vim'
 alias :tabe='vim'
