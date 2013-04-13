@@ -6,6 +6,8 @@ export JUNIT_HOME=~/"java/junit4.9"
 export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.9.jar"
 
 export CC=colorgcc
+export CFLAGS="-pipe"
+export MAKEFLAGS="-j2"
 
 alias :q='exit'
 alias :edit='vim'
