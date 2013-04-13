@@ -232,6 +232,7 @@ function! Find(pattern)
     :exec 'tabe ' . system('find -path "*' . a:pattern . '*" | head -n1')
 endfunction
 command! -nargs=1 Find call Find('<args>')
+nnoremap <C-S-r> :Find 
 
 " Experimenting with habit breaking
 noremap <Up> <NOP>
