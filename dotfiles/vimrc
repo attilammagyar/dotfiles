@@ -179,7 +179,7 @@ vnoremap <C-c> <CR>"+y
 vnoremap <C-x> <CR>"+d
 inoremap <C-v> <Esc>:set paste<CR>"+p:set nopaste<CR>i
 
-" Comment/Uncomment lines of code
+" Comment/Uncomment lines of code when pressing Ctrl+E or Ctrl+U
 autocmd BufEnter *                              let b:cmt_leader = '# '
 autocmd BufEnter *                              let b:cmt_tail = ''
 autocmd BufEnter *.c,*.h                        let b:cmt_leader = '/* '
