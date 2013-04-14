@@ -158,7 +158,7 @@ nnoremap <F12> :!clear ; vim_git.sh commit_all "%"<CR><CR>
 highlight CursorLine term=underline cterm=underline
 set cursorline!
 
-" Ctrl+o will open explorer in a vertical split window
+" Ctrl+o will open explorer in a new tab
 nnoremap <C-o> :Texplore<CR>
 
 " Set default view mode for explorer to tree
