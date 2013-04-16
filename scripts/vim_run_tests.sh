@@ -7,6 +7,7 @@ function main()
     run_tests 2>&1 | tee "$output_file"
     exit_code=${PIPESTATUS[0]}
     sleep .7
+
     return $exit_code
 }
 
@@ -25,7 +26,10 @@ function run_tests()
         ant junit
         return $?
     fi
-    echo "ERROR: Create a .vim_run_tests.sh, a Makefile or a build.xml first!" >&2
+
+    echo "ERROR: Create a .vim_run_tests.sh, a Makefile" \
+         " or a build.xml first!" >&2
+
     return 0
 }
 
