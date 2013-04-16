@@ -13,15 +13,15 @@ function main()
 
 function run_tests()
 {
-    if [ -f ".vim_run_tests.sh" ]
+    if [[ -f ".vim_run_tests.sh" ]]
     then
         source .vim_run_tests.sh
         return $?
-    elif [ -f "Makefile" -o -f "makefile" ]
+    elif [[ -f "Makefile" ]] || [[ -f "makefile" ]]
     then
         bake check
         return $?
-    elif [ -f "build.xml" ]
+    elif [[ -f "build.xml" ]]
     then
         ant junit
         return $?
