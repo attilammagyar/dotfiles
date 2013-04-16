@@ -132,6 +132,16 @@ endif
 command! GitBlame :echo system('vim_git.sh blame '''.expand('%').''' '.line('.'))
 nnoremap <F4> :GitBlame<CR>
 
+" The command :Find d*f.txt will open the first file matching the given path,
+" e.g. 'dir/file.txt' in a new tab.
+function! Find(pattern)
+    exec 'tabe ' . system('find * -path "*' . a:pattern . '*" | head -n1')
+endfunction
+command! -nargs=1 Find call Find('<args>')
+
+" Press F7 to find a file by path and name matching
+nnoremap <F7> :Find 
+
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
 
@@ -225,16 +235,6 @@ function! ToggleTabExpansion()
     endif
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleTabExpansion()
-
-" The command :Find d*f.txt will open the first file matching the given path,
-" e.g. 'dir/file.txt' in a new tab.
-function! Find(pattern)
-    exec 'tabe ' . system('find * -path "*' . a:pattern . '*" | head -n1')
-endfunction
-command! -nargs=1 Find call Find('<args>')
-
-" Press Alt+r to find a file by path and name matching
-nnoremap <M-r> :Find 
 
 " Experimenting with habit breaking
 noremap <Up> <NOP>
