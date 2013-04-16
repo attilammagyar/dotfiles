@@ -12,7 +12,11 @@ function main()
 
 function run_tests()
 {
-    if [ -f "Makefile" -o -f "makefile" ]
+    if [ -f ".vim_run_tests.sh" ]
+    then
+        source .vim_run_tests.sh
+        return $?
+    elif [ -f "Makefile" -o -f "makefile" ]
     then
         bake check
         return $?
@@ -21,7 +25,7 @@ function run_tests()
         ant junit
         return $?
     fi
-    echo "Where's a makefile or a build.xml when you need it? :-("
+    echo "ERROR: Create a .vim_run_tests.sh, a Makefile or a build.xml first!" >&2
     return 0
 }
 

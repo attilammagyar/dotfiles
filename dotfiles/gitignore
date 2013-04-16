@@ -1,2 +1,3 @@
 .*.swp
 .vim_tags
+.vim_run_tests.sh
