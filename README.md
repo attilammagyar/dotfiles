@@ -11,6 +11,7 @@ Files and directories
     * `screenrc`
     * `vimrc`
     * `gitconfig`
+    * `gitignore`
  * `scripts`: helper scripts for `dotfiles` and automations of repetitive tasks
     * `backup.sh`: create an encrypted and gzipped tarball from a directory
     * `restore.sh`: restore a directory from a backup created by `backup.sh`
@@ -27,3 +28,5 @@ Files and directories
     * `wifi.sh`: connect to wi-fi from console, without `network-manager`
     * `gitgrepfight.sh`: compare the number of matches of regular expressions
                          inside a `git` repository
+ * `etc`: global configuration files
+   * `iptables-rules`: firewall settings
