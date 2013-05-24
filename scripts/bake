@@ -80,7 +80,7 @@ clear_everything()
 copy_files()
 {
     project_root="$1"
-    rsync -lrutv --exclude '.*' "$project_root" "$BUILD_DIR/" \
+    rsync -lrutv "$project_root" "$BUILD_DIR/" \
         || error 5 "rsync failed"
 }
 
