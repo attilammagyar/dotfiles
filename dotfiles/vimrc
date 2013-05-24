@@ -156,7 +156,7 @@ function! RunTests()
         hi StatusLine ctermfg=darkgreen ctermbg=black guibg=darkgreen guifg=black
     endif
 endfunction
-nnoremap <F9> :exec RunTests() <CR><CR>
+noremap <F9> <Esc> :call RunTests() <CR><CR>
 
 " Pressing F11 will interactively build a git commit
 nnoremap <F11> :!clear ; vim_git.sh commit_selection "%"<CR><CR>
