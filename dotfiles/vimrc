@@ -192,8 +192,10 @@ inoremap <C-v> <Esc>:set paste<CR>"+p:set nopaste<CR>i
 " Comment/Uncomment lines of code when pressing Ctrl+E or Ctrl+U
 autocmd BufEnter *                              let b:cmt_leader = '# '
 autocmd BufEnter *                              let b:cmt_tail = ''
-autocmd BufEnter *.c,*.h                        let b:cmt_leader = '/* '
-autocmd BufEnter *.c,*.h                        let b:cmt_tail = ' */'
+autocmd BufEnter *.c,*.h,*.css                  let b:cmt_leader = '/* '
+autocmd BufEnter *.c,*.h,*.css                  let b:cmt_tail = ' */'
+autocmd BufEnter *.html,*.htm,*.tpl             let b:cmt_leader = '<!-- '
+autocmd BufEnter *.html,*.htm,*.tpl             let b:cmt_tail = ' -->'
 autocmd BufEnter *.hpp,*.cpp,*.java,*.php,*.js  let b:cmt_leader = '// '
 autocmd BufEnter *.sh,*.ruby,*.python           let b:cmt_leader = '# '
 autocmd BufEnter *.mail                         let b:cmt_leader = '> '
