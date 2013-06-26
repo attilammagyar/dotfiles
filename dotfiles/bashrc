@@ -17,6 +17,32 @@ alias :tabe='vim'
 
 alias xterm='/usr/bin/xterm -fa Monaco -fs 12 -fullscreen'
 
+export Gdc=15
+
+alias Ga="git add"
+alias Gap="git add -p"
+alias Gb="git branch"
+alias Gbr="git branch -r"
+alias Gcv="git commit --verbose"
+alias Gcav="git commit --amend --verbose"
+alias Gco="git checkout"
+alias Gd="git diff -U\$Gdc"
+alias Gdc="git diff --cached -U\$Gdc"
+alias Gfo="git fetch origin"
+alias Gld="git log --decorate"
+alias Gldg="git log --decorate --graph"
+alias Glo="git log --format=oneline"
+alias Gldgo="git log --decorate --graph --format=oneline"
+alias Gldgp="git log --decorate --graph --patch-with-stat --unified=\$Gdc"
+alias Glp="git log --patch-with-stat --unified=$Gdc"
+alias Gploc="git pull origin \"\`git rev-parse --abbrev-ref HEAD\`\""
+alias Gpsoc="git push origin \"\`git rev-parse --abbrev-ref HEAD\`\""
+alias Gpsfoc="git push -f origin \"\`git rev-parse --abbrev-ref HEAD\`\""
+alias Gri="git rebase --interactive"
+alias Gsh="git show -U$Gdc"
+alias Gst="git status"
+alias Gsth="git stash"
+
 scp()
 {
     if [[ "$#" -lt 2 || "$@" =~ : ]]
