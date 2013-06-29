@@ -25,6 +25,9 @@ Files and directories
     * `vim_git.sh`: `git` helper script for my `.vimrc`
     * `vim_lookup_docs.sh`: API documentation finder for my `.vimrc`
     * `vim_run_tests.sh`: test runner script for my `.vimrc`
+    * `update_ci_screenshots.sh`: update Jenkins or Travis CI screenshots for
+                                  screensaver
+    * `webshot.py`: CLI script to take a screenshot from a webpage URL
     * `wifi.sh`: connect to wi-fi from console, without `network-manager`
     * `gitgrepfight.sh`: compare the number of matches of regular expressions
                          inside a `git` repository
