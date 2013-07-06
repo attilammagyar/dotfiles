@@ -29,7 +29,7 @@ function git_grep()
     word="$1"
 
     git_cd_to_root
-    git grep -C3 "$word" \
+    git grep -C3 -n "$word" \
         | less -r
 }
 
