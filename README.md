@@ -32,4 +32,5 @@ Files and directories
     * `gitgrepfight.sh`: compare the number of matches of regular expressions
                          inside a `git` repository
  * `etc`: global configuration files
-   * `iptables-rules`: firewall settings
+   * `iptables-rules`: firewall rules
+   * `iptables-rules-vps`: firewall rules on my VPS with NAT for VPN
