@@ -33,9 +33,6 @@ set formatoptions+=o
 " Font name for gVim
 set guifont=Monaco\ 11
 
-" Draw a margin in the 81th column
-set colorcolumn=81
-
 " Show current line and column numbers
 set ruler
 
@@ -236,12 +233,17 @@ Ctags
 map <C-]> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 map <C-t> :tabprevious<CR>
 
-" Turn on wrapping for text files.
+" Turn on wrapping for text files and display a margin
 function! ToggleWrapping()
-    if empty(matchstr(expand('%'), '\.\(txt\|md\)$'))
-        set textwidth=0
-    else
+    if 0 != len(matchstr(expand('%'), '\(COMMIT_\)\|\(mail\.\)'))
+        set textwidth=72
+        set colorcolumn=73
+    elseif 0 != len(matchstr(expand('%'), '\.\(txt\|md\)$'))
         set textwidth=78
+        set colorcolumn=79
+    else
+        set textwidth=0
+        set colorcolumn=81
     endif
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleWrapping()
