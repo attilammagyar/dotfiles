@@ -128,14 +128,16 @@ endif
 command! GitBlame :echo system('vim_git.sh blame '''.expand('%').''' '.line('.'))
 nnoremap <F4> :GitBlame<CR>
 
-function! OpenFirstResult(command)
-    exec 'tabe ' . system(a:command . ' | head -n1')
+function! OpenAll(command)
+    for f in split(system(a:command), "\n")
+        exec 'tabe ' . f
+    endfor
 endfunction
 
 " The command :Find d*f.txt will open the first file matching the given path,
 " in a case insensitive manner, e.g. 'dir/File.txt', in a new tab.
 function! Find(pattern)
-    call OpenFirstResult('find -L * -ipath ''*' . a:pattern . '*''')
+    call OpenAll('find -L * -ipath ''*' . a:pattern . '*''')
 endfunction
 command! -nargs=1 Find call Find('<args>')
 command! -nargs=1 F call Find('<args>')
@@ -146,7 +148,7 @@ nnoremap <F7> :Find
 " The command :Grep pattern will open the first file matching pattern
 " in a case sensitive manner
 function! Grep(pattern)
-    call OpenFirstResult('grep -Rlm1 ''' . a:pattern . ''' * 2>/dev/null')
+    call OpenAll('grep -Rlm1 ''' . a:pattern . ''' * 2>/dev/null')
 endfunction
 command! -nargs=1 Grep call Grep('<args>')
 command! -nargs=1 G call Grep('<args>')
@@ -154,7 +156,7 @@ command! -nargs=1 G call Grep('<args>')
 " The command :FindClass Name will open the first file matching 'class Name'
 " in a case insensitive manner
 function! FindClass(pattern)
-    call OpenFirstResult('grep -Rilwm1 ''class\s\s*' . a:pattern . ''' * 2>/dev/null')
+    call OpenAll('grep -Rilwm1 ''class\s\s*' . a:pattern . ''' * 2>/dev/null')
 endfunction
 command! -nargs=1 FindClass call FindClass('<args>')
 command! -nargs=1 FC call FindClass('<args>')
