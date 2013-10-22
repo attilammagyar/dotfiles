@@ -43,6 +43,13 @@ alias Gsh="git show -U$Gdc"
 alias Gst="git status"
 alias Gsth="git stash"
 
+vimgitgrep()
+{
+    local pattern="$1"
+
+    vim -p `git grep "$1" | cut -d: -f1 | sort | uniq`
+}
+
 scp()
 {
     if [[ "$#" -lt 2 || "$@" =~ : ]]
