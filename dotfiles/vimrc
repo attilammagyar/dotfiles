@@ -252,6 +252,7 @@ autocmd BufNewFile,BufRead * exec ToggleWrapping()
 
 " Highlight text files as Markdown
 autocmd BufNewFile,BufRead *.txt,*.md set filetype=markdown
+autocmd BufNewFile,BufRead *.rst set filetype=rst
 
 " Use tabs in Makefiles, spaces in anything else for indentation
 function! ToggleTabExpansion()
