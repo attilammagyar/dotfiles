@@ -134,7 +134,7 @@ function! OpenAll(command)
     endfor
 endfunction
 
-" The command :Grep pattern will open the first file matching pattern
+" The command :Grep pattern will open all the files matching pattern
 " in a case sensitive manner
 function! Grep(pattern)
     call OpenAll('grep -Rlm1 ''' . a:pattern . ''' * 2>/dev/null | grep -Ev ''[.](swp|pyc|pickle)$''')
@@ -145,7 +145,7 @@ command! -nargs=1 G call Grep('<args>')
 " Press F6 to open all files containing the word under the cursor
 nnoremap <F6> :call Grep(expand('<cword>'))<CR>
 
-" The command :Find d*f.txt will open the first file matching the given path,
+" The command :Find d*f.txt will open all the files matching the given path,
 " in a case insensitive manner, e.g. 'dir/File.txt', in a new tab.
 function! Find(pattern)
     call OpenAll('find -L * -ipath ''*' . a:pattern . '*''')
@@ -156,7 +156,7 @@ command! -nargs=1 F call Find('<args>')
 " Press F7 to find a file by path and name matching
 nnoremap <F7> :Find 
 
-" The command :FindClass Name will open the first file matching 'class Name'
+" The command :FindClass Name will open all the files matching 'class Name'
 " in a case insensitive manner
 function! FindClass(pattern)
     call OpenAll('grep -Rilwm1 ''class\s\s*' . a:pattern . ''' * 2>/dev/null')
