@@ -94,7 +94,7 @@ set fileformats=unix
 highlight WhitespaceEOL term=reverse ctermbg=Red guibg=Red
 match WhitespaceEOL /\s\+$/
 
-" Lines longer than 80 characters will be highlighted in red.
+" Lines too long will be highlighted in red.
 highlight LongLines term=reverse ctermfg=Red guifg=Red
 
 " Make frequent typos work.
