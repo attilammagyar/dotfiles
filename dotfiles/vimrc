@@ -70,9 +70,11 @@ endfunction
 
 function! AdvanceTDDState()
     let g:TDDState=g:TDDState+1
+
     if g:TDDState == 4
         let g:TDDState=1
     endif
+
     if g:TDDState == 1
         highlight User1 ctermbg=black ctermfg=red
     elseif g:TDDState == 2
@@ -80,7 +82,6 @@ function! AdvanceTDDState()
     elseif g:TDDState == 3
         highlight User1 ctermbg=black ctermfg=blue
     endif
-
 endfunction
 
 " Pressing F10 advances the TDD state to the next
