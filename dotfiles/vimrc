@@ -239,7 +239,7 @@ map <C-t> :tabprevious<CR>
 
 " Turn on wrapping for text files and display a margin
 function! ToggleWrapping()
-    if 0 != len(matchstr(expand('%'), '\(COMMIT_\)\|\(mail\.\)'))
+    if 0 != len(matchstr(expand('%'), '\(COMMIT_\)\|\(mail\.\)\|\(\.mail\)'))
         set textwidth=72
         set colorcolumn=73
         match LongLines /^.\{73,\}$/
