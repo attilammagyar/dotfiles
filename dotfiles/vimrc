@@ -129,9 +129,6 @@ set fileformats=unix
 highlight WhitespaceEOL term=reverse ctermbg=Red guibg=Red
 match WhitespaceEOL /\s\+$/
 
-" Lines too long will be highlighted in red.
-highlight LongLines term=reverse ctermfg=Red guifg=Red
-
 " Make frequent typos work.
 command! Q :q
 command! W :w
@@ -277,15 +274,12 @@ function! ToggleWrapping()
     if 0 != len(matchstr(expand('%'), '\(COMMIT_\)\|\(mail\.\)\|\(\.mail\)'))
         set textwidth=72
         set colorcolumn=73
-        match LongLines /^.\{73,\}$/
     elseif 0 != len(matchstr(expand('%'), '\.\(txt\|md\)$'))
         set textwidth=79
         set colorcolumn=80
-        match LongLines /^.\{80,\}$/
     else
         set textwidth=0
         set colorcolumn=81
-        match LongLines /^.\{81,\}$/
     endif
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleWrapping()
