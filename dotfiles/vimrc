@@ -291,7 +291,7 @@ autocmd BufNewFile,BufRead *.rst set filetype=rst
 
 " Use tabs in Makefiles, spaces in anything else for indentation
 function! ToggleTabExpansion()
-    if empty(matchstr(expand('%'), '\(^\|/\)[Mm]akefile\(\.am\)\?$'))
+    if empty(matchstr(expand('%'), '\(^\|/\)\(\([Mm]akefile\(\.am\)\)\|\(debian/rules\)\)\?$'))
         set expandtab
     else
         set noexpandtab
