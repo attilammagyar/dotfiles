@@ -60,11 +60,11 @@ function main()
     fi
 
     mencoder "$input_video_file" \
-        -ovc lavc -lavcopts vcodec=mpeg4$vbitrate:vpass=1 \
+        -ovc lavc -lavcopts vcodec=mpeg4$vbitrate:autoaspect:vpass=1 \
         -oac mp3lame -lameopts vbr=3 \
         $scale -o /dev/null
     mencoder "$input_video_file" \
-        -ovc lavc -lavcopts vcodec=mpeg4$vbitrate:mbd=2:trell:vpass=2 \
+        -ovc lavc -lavcopts vcodec=mpeg4$vbitrate:mbd=2:trell:autoaspect:vpass=2 \
         -oac mp3lame -lameopts vbr=3 \
         $scale -o "$output_video_file"
 
