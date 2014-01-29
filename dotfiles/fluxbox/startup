@@ -1,0 +1,6 @@
+#!/bin/sh
+
+xmodmap "/home/athos/.Xmodmap"
+xscreensaver -nosplash &
+fbsetbg -f Pictures/backgrounds/november_dawn-1024x600.jpg
+exec fluxbox
