@@ -21,6 +21,9 @@ set incsearch
 " Highlight search pattern matches
 set hlsearch
 
+" Always keep 5 lines visible on the top and the bottom when scrolling
+set scrolloff=5
+
 " Automatically format doxygen style comments
 set comments=sl:/**,mb:\ *,elx:\ */
 
