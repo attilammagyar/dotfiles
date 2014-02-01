@@ -20,7 +20,7 @@ main()
         || error 6 "unable to cd into $BUILD_DIR/$project_name"
 
     exit_code=0
-    if [ "x$make_target" = "xbootstrap" -o "x$make_target" = "xbs" ]
+    if [ "x$make_target" = "x--bootstrap" -o "x$make_target" = "x--bs" ]
     then
         shift
         clear_everything "$project_name"
