@@ -196,9 +196,9 @@ command! -nargs=1 F call Find('<args>')
 nnoremap <F7> :Find 
 
 " The command :FindClass Name will open all the files matching 'class Name'
-" in a case insensitive manner
+" or 'interface Name' in a case insensitive manner
 function! FindClass(pattern)
-    call OpenAll('grep -Rilwm1 ''class\s\s*' . a:pattern . ''' *', a:pattern)
+    call OpenAll('grep -ERilwm1 ''((class)|(interface))\s\s*' . a:pattern . ''' *', a:pattern)
 endfunction
 command! -nargs=1 FindClass call FindClass('<args>')
 command! -nargs=1 FC call FindClass('<args>')
