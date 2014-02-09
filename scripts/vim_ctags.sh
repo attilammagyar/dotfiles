@@ -15,9 +15,9 @@ function main()
 
     if can_be_updated "$tag_file"
     then
-        update_tagfile "$tag_file" "$source_file"
+        update_tag_file "$tag_file" "$source_file"
     else
-        rebuild_tagfile "$tag_file"
+        rebuild_tag_file "$tag_file"
     fi
 }
 
@@ -35,7 +35,7 @@ function can_be_updated()
     return 0
 }
 
-function update_tagfile()
+function update_tag_file()
 {
     tag_file="$1"
     source_file="$2"
@@ -43,7 +43,7 @@ function update_tagfile()
     "$CTAGS" --append --sort=yes -f "$tag_file" "$source_file"
 }
 
-function rebuild_tagfile()
+function rebuild_tag_file()
 {
     tag_file="$1"
 
