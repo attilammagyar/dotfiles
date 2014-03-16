@@ -45,9 +45,7 @@ alias Gsth="git stash"
 
 vimgitgrep()
 {
-    local pattern="$1"
-
-    vim -p `git grep "$1" | cut -d: -f1 | sort | uniq`
+    vim -p `git grep "$@" | cut -d: -f1 | sort | uniq`
 }
 
 scp()
