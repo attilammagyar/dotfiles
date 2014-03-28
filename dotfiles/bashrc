@@ -15,7 +15,7 @@ alias :q='exit'
 alias :edit='vim'
 alias :tabe='vim'
 
-alias xterm='/usr/bin/xterm -fa Monaco -fs 14 -fullscreen'
+alias xterm='/usr/bin/xterm -fa Monaco -fs 12 -fullscreen'
 
 export Gdc=15
 
