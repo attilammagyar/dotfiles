@@ -43,6 +43,17 @@ alias Gsh="git show -U$Gdc"
 alias Gst="git status"
 alias Gsth="git stash"
 
+gitklog()
+{
+    git log \
+        --format=" %Cgreen%h %Cblue%ci %Cred%an%Creset - %s %Cred%d%Creset" \
+        --graph \
+        --color \
+        "$@" \
+        | sed 's/[012][0-9]:[0-5][0-9]:[0-5][0-9] [^ ][0-9][0-9][0-9][0-9] //' \
+        | less -R
+}
+
 vimgitgrep()
 {
     vim -p `git grep "$@" | cut -d: -f1 | sort | uniq`
