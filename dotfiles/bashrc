@@ -49,6 +49,7 @@ gitklog()
         --format=" %Cgreen%h %Cblue%ci %Cred%an%Creset - %s %Cred%d%Creset" \
         --graph \
         --color \
+        --unified=$Gdc \
         "$@" \
         | sed 's/[012][0-9]:[0-5][0-9]:[0-5][0-9] [^ ][0-9][0-9][0-9][0-9] //' \
         | less -R
