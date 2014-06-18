@@ -134,6 +134,8 @@ match WhitespaceEOL /\s\+$/
 
 " Make frequent typos work.
 command! Q :q
+command! Qall :qall
+command! QAll :qall
 command! W :w
 command! Wq :wq
 command! WQ :wq
