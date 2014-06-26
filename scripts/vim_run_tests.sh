@@ -2,10 +2,11 @@
 
 function main()
 {
-    output_file="$1"
+    local currently_edited_file="$1"
+    local output_file="$2"
 
-    run_tests 2>&1 | tee "$output_file"
-    exit_code=${PIPESTATUS[0]}
+    run_tests "$currently_edited_file" 2>&1 | tee "$output_file"
+    local exit_code=${PIPESTATUS[0]}
     sleep .7
 
     return $exit_code
@@ -13,9 +14,11 @@ function main()
 
 function run_tests()
 {
+    local currently_edited_file="$1"
+
     if [[ -f ".vim_run_tests.sh" ]]
     then
-        source .vim_run_tests.sh
+        "$SHELL" .vim_run_tests.sh "$currently_edited_file"
         return $?
     elif [[ -f "Makefile" ]] || [[ -f "makefile" ]]
     then

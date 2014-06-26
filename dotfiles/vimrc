@@ -211,7 +211,7 @@ nnoremap <F8> :nohl<CR>
 " Pressing F9 will attempt to invoke unit tests through a shell script named
 " vim_run_tests.sh and open the output in a new window in case of failure.
 function! RunTests()
-    !clear; vim_run_tests.sh /tmp/__test_output
+    !clear; vim_run_tests.sh '%' /tmp/__test_output
     if shell_error!=0
         14split + /tmp/__test_output
         hi StatusLine ctermfg=darkred ctermbg=white guibg=darkred guifg=white
