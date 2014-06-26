@@ -20,6 +20,10 @@ function run_tests()
     then
         "$SHELL" .vim_run_tests.sh "$currently_edited_file"
         return $?
+    elif [[ -f "vim_run_tests.sh" ]]
+    then
+        "$SHELL" vim_run_tests.sh "$currently_edited_file"
+        return $?
     elif [[ -f "Makefile" ]] || [[ -f "makefile" ]]
     then
         bake check
