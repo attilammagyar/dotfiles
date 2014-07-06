@@ -186,6 +186,14 @@ command! -nargs=1 G call Grep('<args>')
 " Press F6 to open all files containing the word under the cursor
 nnoremap <F6> :call Grep(expand('<cword>'))<CR>
 
+" The command :GitGrep pattern will open all the files in a git repository
+" matching pattern in a case sensitive manner
+function! GitGrep(pattern)
+    call OpenAll('git grep -l -- ''' . a:pattern . ''' *', a:pattern)
+endfunction
+command! -nargs=1 GitGrep call GitGrep('<args>')
+command! -nargs=1 GG call GitGrep('<args>')
+
 " The command :Find d*f.txt will open all the files matching the given path,
 " in a case insensitive manner, e.g. 'dir/File.txt', in a new tab.
 function! Find(pattern)
@@ -204,6 +212,14 @@ function! FindClass(pattern)
 endfunction
 command! -nargs=1 FindClass call FindClass('<args>')
 command! -nargs=1 FC call FindClass('<args>')
+
+" The command :GitFindClass Name will open all the files matching 'class Name'
+" or 'interface Name' in a git repository in a case insensitive manner
+function! GitFindClass(pattern)
+    call OpenAll('git grep -Eilw ''((class)|(interface))\s\s*' . a:pattern . ''' *', a:pattern)
+endfunction
+command! -nargs=1 GitFindClass call GitFindClass('<args>')
+command! -nargs=1 GFC call GitFindClass('<args>')
 
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
