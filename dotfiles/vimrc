@@ -309,8 +309,8 @@ function! ToggleWrapping()
 endfunction
 autocmd BufNewFile,BufRead * exec ToggleWrapping()
 
-" Highlight text files as Markdown
-autocmd BufNewFile,BufRead *.txt,*.md set filetype=markdown
+" Additional rules to turn on syntax highlighting for various file types
+autocmd BufNewFile,BufRead *.md set filetype=markdown
 autocmd BufNewFile,BufRead *.tpl,*.twig set filetype=htmldjango
 autocmd BufNewFile,BufRead *.rst set filetype=rst
 
