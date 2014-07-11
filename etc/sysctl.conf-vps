@@ -41,19 +41,19 @@ net.ipv6.conf.all.forwarding=1
 # settings are disabled so review and enable them as needed.
 #
 # Do not accept ICMP redirects (prevent MITM attacks)
-#net.ipv4.conf.all.accept_redirects = 0
-#net.ipv6.conf.all.accept_redirects = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
 # _or_
 # Accept ICMP redirects only for gateways listed in our default
 # gateway list (enabled by default)
-# net.ipv4.conf.all.secure_redirects = 1
+net.ipv4.conf.all.secure_redirects = 0
 #
 # Do not send ICMP redirects (we are not a router)
 #net.ipv4.conf.all.send_redirects = 0
 #
 # Do not accept IP source route packets (we are not a router)
-#net.ipv4.conf.all.accept_source_route = 0
-#net.ipv6.conf.all.accept_source_route = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv6.conf.all.accept_source_route = 0
 #
 # Log Martian Packets
 #net.ipv4.conf.all.log_martians = 1
