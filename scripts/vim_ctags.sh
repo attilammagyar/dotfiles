@@ -1,11 +1,11 @@
 #!/bin/bash
 
-CTAGS="ctags"
+CTAGS="/usr/bin/ctags"
 
 function main()
 {
-    tag_file="$1"
-    source_file="$2"
+    local tag_file="$1"
+    local source_file="$2"
 
     [[ -z "$tag_file" ]] && return 0
     [[ -z "$source_file" ]] && return 0
@@ -23,31 +23,32 @@ function main()
 
 function can_be_updated()
 {
-    tag_file="$1"
+    local tag_file="$1"
 
     [[ -s "$tag_file" ]] || return 1
 
-    last_modified_timestamp="`stat -c\"%Y\" \"$tag_file\"`"
-    now="`date \"+%s\"`"
-    too_old=$(($now-7200))
+    local last_modified_timestamp="`stat -c\"%Y\" \"$tag_file\"`"
+    local now="`date \"+%s\"`"
+    local too_old=$(($now-7200))
 
     [[ $last_modified_timestamp -gt $too_old ]] || return 2
+
     return 0
 }
 
 function update_tag_file()
 {
-    tag_file="$1"
-    source_file="$2"
+    local tag_file="$1"
+    local source_file="$2"
 
     "$CTAGS" --append --sort=yes -f "$tag_file" "$source_file"
 }
 
 function rebuild_tag_file()
 {
-    tag_file="$1"
+    local tag_file="$1"
 
-    "$CTAGS" --sort=yes -Rf "$tag_file" *
+    "$CTAGS" --sort=yes --recurse -f "$tag_file" *
 }
 
 main "$@" >/dev/null 2>/dev/null
