@@ -1,0 +1,31 @@
+#!/bin/bash
+
+hldiff()
+{
+    cat \
+        | sed -r 's/\+\+\+ (.*)$/\n\n<h4 style="text-decoration: underline">\1:<\/h4>/g' \
+        | sed -r 's/^ //' \
+        | sed -r 's/^-(\s*)(.*)$/\1<del style="color: #800000;">\2<\/del>/g' \
+        | sed -r 's/^\+(.*)$/<span style="color: #007000;">\1<\/span>/g' \
+        | cat
+}
+
+cmd="cat"
+if [ "x$1" = "x--diff" ]
+then
+    shift
+    cmd=hldiff
+fi
+
+keywords="(void|int|float|double|char|new|public|private|protected|function|static|class|return|if|while|for|interface|do|switch|case|unset|empty|isset|break|continue|else|elif|implements|extends|goto|default|def|with|except|try|catch|finally)"
+( echo '<pre>'
+    cat "$1" \
+    | sed 's/\t/    /g' \
+    | sed 's/&/\&amp;/g' \
+    | sed 's/[<]/\&lt;/g' \
+    | sed 's/[>]/\&gt;/g' \
+    | sed -r 's/([^a-zA-Z0-9_]|^)(('"$keywords"'\s*)+)([^a-zA-Z0-9_]+|$)/\1<strong>\2<\/strong>\5/g' \
+    | sed -r 's/(["'"'"'][^"'"'"']*["'"'"'])/<em>\1<\/em>/g' \
+    | $cmd
+    echo '</pre>'
+)

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo -n "Host: "
+read
+host="$REPLY"
+echo -n "Username: "
+read
+name="$REPLY"
+echo -n "Password: "
+stty -echo
+read
+password="$REPLY"
+stty echo
+echo
+
+mkdir -p ~/ftpfs/"$host"
+curlftpfs "ftp://$name:$password@$host" ~/ftpfs/"$host"/"$name"
+
