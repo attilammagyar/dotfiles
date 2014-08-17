@@ -1,7 +1,7 @@
 #!/bin/bash
 
 GLIB_DOCS="/usr/share/doc/libglib2.0-doc/glib/api-index-full.html"
-PHP_DOCS=~/docs/php-5.3/php-chunked-xhtml/indexes.html
+PHP_DOCS=~/docs/php-5.6/php-chunked-xhtml/indexes.html
 LINKS="links"
 
 main()
