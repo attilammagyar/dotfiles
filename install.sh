@@ -62,6 +62,9 @@ apt-get install \
     mplayer \
     musescore \
     pavucontrol \
+    virtualbox \
+    virtualbox-guest-additions-iso \
+    virtualbox-qt \
     xdm \
     xinit \
     xscreensaver \
