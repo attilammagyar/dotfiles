@@ -14,6 +14,7 @@ apt-get install \
     gcc \
     gdb \
     git \
+    graphviz \
     htop \
     iptables \
     libglib2.0-doc \
@@ -40,7 +41,8 @@ apt-get install \
     traceroute \
     vim \
     wget \
-    wpasupplicant
+    wpasupplicant \
+    xsltproc
 
 apt-get install \
     arandr \
