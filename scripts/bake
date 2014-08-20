@@ -110,7 +110,7 @@ try_make()
 {
     if [ -e "./Makefile" -o -e "./makefile" ]
     then
-        $MAKE && $MAKE install
+        $MAKE
         return $?
     fi
     return 0
