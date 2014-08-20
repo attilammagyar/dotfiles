@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Turn off touchpad tap-to-click.
+synclient MaxTapTime=0

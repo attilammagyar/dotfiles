@@ -16,6 +16,8 @@ cp -v $DOTFILES_REPO/dotfiles/screenrc ~/.screenrc
 mkdir -vp ~/.ssh
 cp -v $DOTFILES_REPO/dotfiles/ssh/config ~/.ssh/config
 
+cp -v $DOTFILES_REPO/dotfiles/xinitrc ~/.xinitrc
+
 mkdir -vp ~/.fluxbox
 cp -vr $DOTFILES_REPO/dotfiles/fluxbox/* ~/.fluxbox/
 
