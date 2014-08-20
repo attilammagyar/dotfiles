@@ -6,6 +6,7 @@ apt-get install \
     curl \
     curlftpfs \
     debhelper \
+    devscripts \
     diffutils \
     exuberant-ctags \
     fail2ban \
