@@ -25,6 +25,7 @@ cp -v dotfiles/gitignore ~/.gitignore
 cp -v dotfiles/gitconfig ~/.gitconfig
 
 sudo cp -v $DOTFILES_REPO/etc/iptables-rules /etc/
+sudo bash -c "cat '$DOTFILES_REPO/etc/hosts' >> /etc/hosts"
 sudo mkdir -vp /etc/network/if-pre-up.d
 sudo bash -c \
     'echo -e "#/bin/bash\\n\\n/sbin/iptables-restore < /etc/iptables-rules" \

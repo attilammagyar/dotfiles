@@ -32,5 +32,7 @@ Files and directories
     * `gitgrepfight.sh`: compare the number of matches of regular expressions
                          inside a `git` repository
  * `etc`: global configuration files
+   * `hosts`: slightly modified version of the hosts file available at
+     http://someonewhocares.org/hosts/
    * `iptables-rules`: firewall rules
    * `iptables-rules-vps`: firewall rules on my VPS with NAT for VPN

@@ -12,6 +12,7 @@
 -A FORWARD -p udp -m limit --limit 2/s -j ACCEPT
 -A FORWARD -p tcp -m limit --limit 2/s -j ACCEPT
 -A FORWARD -p icmp -m limit --limit 2/s -j ACCEPT
+-A OUTPUT -d 127.0.0.242 -j REJECT
 #-A LOG_NEW -m state --state NEW -m limit --limit 5/min -j LOG 
 #-A LOG_NEW -j RETURN 
 COMMIT
