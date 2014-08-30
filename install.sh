@@ -39,10 +39,12 @@ apt-get install \
     sl \
     tcpdump \
     traceroute \
+    unzip \
     vim \
     wget \
     wpasupplicant \
-    xsltproc
+    xsltproc \
+    zip
 
 apt-get install \
     arandr \
