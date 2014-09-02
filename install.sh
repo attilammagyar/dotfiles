@@ -17,6 +17,7 @@ apt-get install \
     graphviz \
     htop \
     iptables \
+    lame \
     libglib2.0-doc \
     lighttpd \
     links \
