@@ -51,6 +51,7 @@ apt-get install \
     arandr \
     audacious \
     audacity \
+    cups \
     eog \
     evince \
     firefox \
