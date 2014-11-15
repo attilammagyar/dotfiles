@@ -25,7 +25,19 @@ echo "Connecting to '$essid'"
 
 config_file="`tempfile`"
 
-wpa_passphrase "$essid" "$password" >"$config_file"
+cat >"$config_file" <<EOF
+ap_scan=1
+fast_reauth=1
+
+EOF
+
+wpa_passphrase "$essid" "$password" \
+    | grep -v '^ *}$' >>"$config_file"
+
+cat >>"$config_file" <<EOF
+        scan_ssid=1
+}
+EOF
 
 password=""
 essid=""
