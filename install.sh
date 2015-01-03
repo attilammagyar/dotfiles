@@ -26,6 +26,7 @@ apt-get install \
     mc \
     netcat \
     nmap \
+    openjdk-7-jdk \
     openssh-client \
     openssh-server \
     openvpn \
