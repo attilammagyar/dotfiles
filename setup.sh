@@ -31,3 +31,9 @@ sudo bash -c \
     'echo -e "#!/bin/bash\\n\\n/sbin/iptables-restore < /etc/iptables-rules" \
     > /etc/network/if-pre-up.d/iptables'
 sudo chmod +x /etc/network/if-pre-up.d/iptables
+
+cd /tmp/
+wget -O Monaco_Linux.ttf 'http://www.gringod.com/wp-upload/software/Fonts/Monaco_Linux.ttf'
+sudo mkdir -p /usr/share/fonts/truetype/custom
+sudo mv Monaco_Linux.ttf /usr/share/fonts/truetype/custom/
+sudo fc-cache -f -v
