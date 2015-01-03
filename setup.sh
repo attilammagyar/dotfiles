@@ -28,6 +28,6 @@ sudo cp -v $DOTFILES_REPO/etc/iptables-rules /etc/
 sudo bash -c "cat '$DOTFILES_REPO/etc/hosts' >> /etc/hosts"
 sudo mkdir -vp /etc/network/if-pre-up.d
 sudo bash -c \
-    'echo -e "#/bin/bash\\n\\n/sbin/iptables-restore < /etc/iptables-rules" \
+    'echo -e "#!/bin/bash\\n\\n/sbin/iptables-restore < /etc/iptables-rules" \
     > /etc/network/if-pre-up.d/iptables'
 sudo chmod +x /etc/network/if-pre-up.d/iptables
