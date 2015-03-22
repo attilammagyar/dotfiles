@@ -114,7 +114,7 @@ PS1="\n$WHITE-("
 PS1="$PS1 \${PROMPT_EXTRA}"
 
 # username@hostname[hh:mm:ss]
-PS1="$PS1 \u@$YELLOW\h$WHITE[\t]"
+PS1="$PS1 \u@$LIGHTCYAN\h$WHITE[\t]"
 
 # Exit code of the latest command: green "<0>" or red ">NON-ZERO<"
 PS1="$PS1 \$(__x=\$?; if [[ \$__x -ne 0 ]]; then"
