@@ -1,4 +1,6 @@
 export PATH=~/"bin:$PATH"
+export PATH=~/"java/bin:$PATH"
+export PATH=~/".local/bin:$PATH"
 export GIT_EDITOR="vim"
 export EDITOR="vim"
 
