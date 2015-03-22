@@ -182,6 +182,8 @@ function! Grep(pattern)
 endfunction
 command! -nargs=1 Grep call Grep('<args>')
 command! -nargs=1 G call Grep('<args>')
+command! -nargs=0 GrepCurrentWord call Grep(expand('<cword>'))
+command! -nargs=0 GCW call Grep(expand('<cword>'))
 
 " Press F6 to open all files containing the word under the cursor
 nnoremap <F6> :call Grep(expand('<cword>'))<CR>
@@ -193,6 +195,8 @@ function! GitGrep(pattern)
 endfunction
 command! -nargs=1 GitGrep call GitGrep('<args>')
 command! -nargs=1 GG call GitGrep('<args>')
+command! -nargs=0 GitGrepCurrentWord call GitGrep(expand('<cword>'))
+command! -nargs=0 GGCW call GitGrep(expand('<cword>'))
 
 " The command :Find d*f.txt will open all the files matching the given path,
 " in a case insensitive manner, e.g. 'dir/File.txt', in a new tab.
@@ -201,6 +205,8 @@ function! Find(pattern)
 endfunction
 command! -nargs=1 Find call Find('<args>')
 command! -nargs=1 F call Find('<args>')
+command! -nargs=0 FindCurrentWord call Find(expand('<cword>'))
+command! -nargs=0 FCW call Find(expand('<cword>'))
 
 " Press F7 to find a file by path and name matching
 nnoremap <F7> :Find 
@@ -212,6 +218,8 @@ function! FindClass(pattern)
 endfunction
 command! -nargs=1 FindClass call FindClass('<args>')
 command! -nargs=1 FC call FindClass('<args>')
+command! -nargs=0 FindClassCurrentWord call FindClass(expand('<cword>'))
+command! -nargs=0 FCCW call FindClass(expand('<cword>'))
 
 " The command :GitFindClass Name will open all the files matching 'class Name'
 " or 'interface Name' in a git repository in a case insensitive manner
@@ -220,6 +228,8 @@ function! GitFindClass(pattern)
 endfunction
 command! -nargs=1 GitFindClass call GitFindClass('<args>')
 command! -nargs=1 GFC call GitFindClass('<args>')
+command! -nargs=0 GitFindClassCurrentWord call GitFindClass(expand('<cword>'))
+command! -nargs=0 GFCCW call GitFindClass(expand('<cword>'))
 
 " Pressing F8 will turn off search highlighting
 nnoremap <F8> :nohl<CR>
