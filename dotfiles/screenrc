@@ -4,6 +4,24 @@ autodetach on
 defscrollback 5000
 hardstatus alwayslastline
 hardstatus string '[%c] %w'
+
+layout new 'horizontal'
+split
+focus
+resize 5
+focus
+
+layout new 'vertical'
+split -v
+focus
+resize 25
+focus
+
+layout new  'main'
+
+bind ' ' layout next
+
+layout select 'main'
 screen 0 bash
 screen 1 bash
 screen 2 bash
