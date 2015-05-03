@@ -21,6 +21,7 @@ Files and directories
     * `md2bloghtml`: convert markdown files to HTML to be used in my company
                      blog
     * `mntprvt`: mount the encrypted part of my home directory
+    * `mp3rename.sh`: rename a bunch of MP3 files according to their ID3 info
     * `vim_ctags.sh`: `ctags` helper script for my `.vimrc`
     * `vim_git.sh`: `git` helper script for my `.vimrc`
     * `vim_lookup_docs.sh`: API documentation finder for my `.vimrc`
