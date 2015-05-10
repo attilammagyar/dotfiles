@@ -94,6 +94,7 @@ function extract()
 function to_alnum()
 {
     tr -d "'!?" \
+        | iconv --from-code UTF-8 --to-code ASCII//TRANSLIT \
         | tr [[:upper:]] [[:lower:]] \
         | sed "s/[^a-zA-Z0-9]\\+/_/g ; s/^_*// ; s/_*\$//"
 }
