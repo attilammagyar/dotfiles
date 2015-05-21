@@ -138,6 +138,10 @@ PS1="$PS1 | sed 's/^[*] /$WHITE )-\\\\n-($LIGHTBLUE /"
 PS1="$PS1 ; s/\\([^-]\\)\$/\\1 $LIGHTGREEN'\$(git status --porcelain"
 PS1="$PS1 2>/dev/null | wc -l)'/ ; s/ master /$LIGHTRED master /')"
 
+# Update window title with the last 2 segments of pwd
+PS1="$PS1\\[\\033k\$(echo \$(basename \$(dirname \$(pwd)))/"
+PS1="$PS1\$(basename \$(pwd)) | sed s@//*@/@g)\\033\\\\\\]"
+
 # New command to be entered in a new line
 PS1="$PS1 $WHITE)-\n\\\$ $NOCOLOR"
 
