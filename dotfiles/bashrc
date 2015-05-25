@@ -71,14 +71,14 @@ gitklog()
 
 vimgitgrep()
 {
-    vim -p `git grep "$@" | cut -d: -f1 | sort | uniq`
+    vim -p $(git grep "$@" | cut -d: -f1 | sort | uniq)
 }
 
 scp()
 {
     if [[ "$#" -lt 2 || "$@" =~ : ]]
     then
-        /usr/bin/scp $@
+        /usr/bin/scp "$@"
         return $?
     else
         sl
