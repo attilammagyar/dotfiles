@@ -45,6 +45,11 @@ alias Gsh="git show -U$Gdc"
 alias Gst="git status"
 alias Gsth="git stash"
 
+set_title()
+{
+    echo -en "\033k$@\033\\"
+}
+
 gitklog()
 {
     local diff="--color" # ugly hack for no-op
@@ -80,6 +85,12 @@ scp()
         echo "You forgot the colon dumbass!" >&2
         return 1
     fi
+}
+
+ssh()
+{
+    set_title "ssh $@"
+    /usr/bin/ssh "$@"
 }
 
 gti()
