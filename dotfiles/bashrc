@@ -125,7 +125,7 @@ PS1="\n$WHITE-("
 PS1="$PS1 \${PROMPT_EXTRA}"
 
 # username@hostname[hh:mm:ss]
-PS1="$PS1 \u@$LIGHTCYAN\h$WHITE[\t]"
+PS1="$PS1 \u@$YELLOW\h$WHITE[\t]"
 
 # Exit code of the latest command: green "<0>" or red ">NON-ZERO<"
 PS1="$PS1 \$(__x=\$?; if [[ \$__x -ne 0 ]]; then"
@@ -145,7 +145,7 @@ PS1="$PS1\$(echo '\w' | sed -r 's/^.*.(.{30})/<\1/')"
 # When inside a git repo, display the name of the current working branch
 # along with some statistics about uncommitted changes
 PS1="$PS1\$( git branch 2>/dev/null | grep -m1 --color=never '^[*] '"
-PS1="$PS1 | sed 's/^[*] /$WHITE )-\\\\n-($LIGHTBLUE /"
+PS1="$PS1 | sed 's/^[*] /$WHITE )-\\\\n-($LIGHTCYAN /"
 PS1="$PS1 ; s/\\([^-]\\)\$/\\1 $LIGHTGREEN'\$(git status --porcelain"
 PS1="$PS1 2>/dev/null | wc -l)'/ ; s/ master /$LIGHTRED master /')"
 
@@ -154,7 +154,14 @@ PS1="$PS1\\[\\033k\$(echo \"\$PWD\" | sed -r"
 PS1="$PS1 's@^.*/([^/]*/[^/]*)\$@\\1@')\\033\\\\\\]"
 
 # New command to be entered in a new line
-PS1="$PS1 $WHITE)-\n\\\$ $NOCOLOR"
+PS1="$PS1 $WHITE)-\n"
+
+# Random alias tip. Maybe this way I won't keep forgetting them.
+PS1="$PS1$LIGHTBLUE\$( ( echo -n 'Did you know you have this alias? ' ;"
+PS1="$PS1 alias -p | shuf -n1 ) | head -n \$((\$RANDOM%2)) ; echo '\n')"
+
+# Turn off coloring for new command
+PS1="$PS1$WHITE\\\$ $NOCOLOR"
 
 # Adjust the title of the terminal window
 case "$TERM" in
