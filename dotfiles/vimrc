@@ -354,3 +354,6 @@ endfunction
 " Pressing Ctrl+i attempts to find the step definition to the .feature
 " step under the cursor inside a git repository.
 noremap <C-i> :call GitFindStep()<CR>
+
+" :w!! will save the file as root
+cmap w!! w !sudo tee % >/dev/null
