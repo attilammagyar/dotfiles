@@ -11,6 +11,12 @@ function! SetIndentation()
 endfunction
 autocmd BufNewFile,BufRead * exec SetIndentation()
 
+" Scroll horizontally one character at a time
+set sidescroll=1
+
+" When wrapping is turned on, add some visual aid to continuation lines
+set showbreak=\ \->\ 
+
 " Automatic indentation
 set autoindent
 set smartindent
@@ -304,7 +310,7 @@ Ctags
 map <C-]> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
 map <C-t> :tabprevious<CR>
 
-" Turn on wrapping for text files and display a margin
+" Turn on auto-wrapping for text files and display a margin
 function! ToggleWrapping()
     if 0 != len(matchstr(expand('%'), '\(COMMIT_\)\|\(mail\.\)\|\(\.mail\)\|\(\.rst\)'))
         set textwidth=72
