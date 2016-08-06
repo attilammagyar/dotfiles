@@ -220,7 +220,8 @@ nnoremap <F7> :Find
 " The command :FindClass Name will open all the files matching 'class Name'
 " or 'interface Name' in a case insensitive manner
 function! FindClass(pattern)
-    call OpenAll('grep -ERilwm1 ''((class)|(interface))\s\s*' . a:pattern . ''' *', a:pattern)
+    let l:pattern = '\(^\|[^a-zA-Z0-9_]\)\(\(class\)\|\(interface\)\)\s\s*' . a:pattern . '\([^a-zA-Z0-9_]\|$\)'
+    call OpenAll('grep -Rilm1 ''' . l:pattern . ''' *', l:pattern)
 endfunction
 command! -nargs=1 FindClass call FindClass('<args>')
 command! -nargs=1 FC call FindClass('<args>')
@@ -230,7 +231,8 @@ command! -nargs=0 FCCW call FindClass(expand('<cword>'))
 " The command :GitFindClass Name will open all the files matching 'class Name'
 " or 'interface Name' in a git repository in a case insensitive manner
 function! GitFindClass(pattern)
-    call OpenAll('git grep -Eilw ''((class)|(interface))\s\s*' . a:pattern . ''' *', a:pattern)
+    let l:pattern = '\(^\|[^a-zA-Z0-9_]\)\(\(class\)\|\(interface\)\)\s\s*' . a:pattern . '\([^a-zA-Z0-9_]\|$\)'
+    call OpenAll('git grep -il ''' . l:pattern . ''' *', l:pattern)
 endfunction
 command! -nargs=1 GitFindClass call GitFindClass('<args>')
 command! -nargs=1 GFC call GitFindClass('<args>')
