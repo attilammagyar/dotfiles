@@ -1,11 +1,13 @@
 export PATH=~/"bin:$PATH"
-export PATH=~/"java/bin:$PATH"
+export PATH=~/"java/jdk/bin:$PATH"
+export PATH=~/"java/maven/bin:$PATH"
+export PATH=~/"java/eclipse:$PATH"
 export PATH=~/".local/bin:$PATH"
 export GIT_EDITOR="vim"
 export EDITOR="vim"
 
-export JUNIT_HOME=~/"java/junit4.9"
-export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.9.jar"
+export JUNIT_HOME=~/"java/junit"
+export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.12.jar:$JUNIT_HOME/hamcrest-core-1.3.jar"
 
 export CC=colorgcc
 export CFLAGS="-pipe"
