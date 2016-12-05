@@ -11,13 +11,11 @@ export CC=colorgcc
 export CFLAGS="-pipe"
 export MAKEFLAGS="-j2"
 
-export GREP_OPTIONS="--color=auto"
-
 alias :q='exit'
 alias :edit='vim'
 alias :tabe='vim'
 
-alias xterm='/usr/bin/xterm -fa Monaco -fs 14 -fullscreen'
+alias xterm='/usr/bin/xterm -fa Monaco -fs 14'
 
 export Gdc=15
 

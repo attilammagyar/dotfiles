@@ -1,54 +1,55 @@
 #!/bin/bash
 
-service network-manager stop
+main()
+{
+    local pattern='(Cell [0-9]+ - Address:)|(ESSID:)|(Encryption key|IE: WPA)'
+    local iface="wlan0"
+    local essid=""
+    local password=""
+    local config_file=""
+    local error=0
 
-ifconfig wlan0 up || exit 1
+    # service network-manager stop
 
-echo "Scanning available networks:"
-pattern='(Cell [0-9]+ - Address:)|(ESSID:)|(Encryption key|IE: WPA)'
-iwlist wlan0 scan | grep --color=never -E "$pattern"
+    ifconfig "$iface" up || exit 1
 
-echo -n "Enter ESSID: "
-read
-essid="$REPLY"
+    echo "Scanning available networks:"
+    iwlist "$iface" scan | grep --color=never -E "$pattern"
 
-echo -n "Enter password: "
-stty -echo
-read
-password="$REPLY"
-stty echo
+    echo -n "Enter ESSID: "
+    read
+    essid="$REPLY"
 
-echo
-echo "Connecting to '$essid'"
+    echo -n "Enter password: "
+    stty -echo
+    read
+    password="$REPLY"
+    stty echo
 
-#iwconfig wlan0 essid "$essid" key "s:$key" || exit 2
+    echo
+    echo "Connecting to '$essid'"
 
-config_file="`tempfile`"
+    #iwconfig "$iface" essid "$essid" key "s:$key" || exit 2
 
-cat >"$config_file" <<EOF
-ap_scan=1
-fast_reauth=1
+    config_file="`tempfile`"
 
-EOF
+    # echo "ap_scan=2" >"$config_file"
+    wpa_passphrase "$essid" "$password" >>"$config_file"
 
-wpa_passphrase "$essid" "$password" \
-    | grep -v '^ *}$' >>"$config_file"
+    password=""
+    essid=""
 
-cat >>"$config_file" <<EOF
-        scan_ssid=1
+    wpa_supplicant -B -D nl80211 -i "$iface" -c "$config_file"
+    # wpa_supplicant -B -D wext -i "$iface" -c "$config_file"
+
+    error=$?
+    rm "$config_file"
+
+    [ $error -eq 0 ] || exit 2
+
+    echo "Obtaining IP address"
+
+    dhclient -v "$iface" || exit 4
 }
-EOF
 
-password=""
-essid=""
-
-wpa_supplicant -B -D nl80211 -i wlan0 -c "$config_file"
-
-error=$?
-rm "$config_file"
-
-[ $error -eq 0 ] || exit 2
-
-echo "Obtaining IP address"
-
-dhclient wlan0 || exit 3
+main "$@"

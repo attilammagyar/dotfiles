@@ -18,7 +18,6 @@ apt-get install \
     htop \
     iptables \
     lame \
-    libglib2.0-doc \
     lighttpd \
     links \
     make \
@@ -26,16 +25,10 @@ apt-get install \
     mc \
     netcat \
     nmap \
-    openjdk-7-jdk \
     openssh-client \
     openssh-server \
     openvpn \
     pciutils \
-    php5-cgi \
-    php5-cli \
-    php5-sqlite \
-    php5-xdebug \
-    php5-xsl \
     pm-utils \
     screen \
     sl \

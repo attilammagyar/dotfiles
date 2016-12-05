@@ -137,4 +137,4 @@ Control Mod4 F11 :TakeToWorkspace 11
 Control Mod4 F12 :TakeToWorkspace 12
 
 Control Alt L :Exec /usr/bin/xscreensaver-command -lock
-Control Alt T :Exec /usr/bin/xterm -fa Monaco -fs 14 -e screen
+Control Alt T :Exec /usr/bin/xterm -fa Monaco -fs 14
