@@ -1,5 +1,6 @@
 " Turn on line numbers
 set number
+autocmd BufNewFile,BufRead * set number
 
 " Indent *.feature files by 2 spaces, anything else by 4
 function! SetIndentation()
@@ -248,6 +249,7 @@ function! RunTests()
     !clear; vim_run_tests.sh '%' /tmp/__test_output
     if shell_error!=0
         14split + /tmp/__test_output
+        set nonumber
         hi StatusLine ctermfg=darkred ctermbg=white guibg=darkred guifg=white
     else
         hi StatusLine ctermfg=darkgreen ctermbg=black guibg=darkgreen guifg=black
