@@ -3,4 +3,5 @@
 xscreensaver -nosplash &
 syndaemon -i 0.5 -d
 fbsetbg -f .fluxbox/backgrounds/november_dawn.jpg
+fcitx-autostart
 exec fluxbox
