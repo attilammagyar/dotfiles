@@ -18,6 +18,7 @@ Files and directories
     * `vid2android.sh`: convert and resize videos for my android phone (2.2)
     * `bake`: make-shift wrapper around make to do compiling and test
               installations out-of-tree
+    * `loudness.sh`: print loudness statistics for audio files using ffmpeg
     * `md2bloghtml`: convert markdown files to HTML to be used in my company
                      blog
     * `mntprvt`: mount the encrypted part of my home directory
