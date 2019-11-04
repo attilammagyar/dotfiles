@@ -51,7 +51,7 @@ function git_blame()
     source_file="$1"
     line="$2"
 
-    git blame -L "$line,+1" "$source_file"
+    git blame -w -MCCC -L "$line,+1" "$source_file"
 }
 
 function git_commit_all()
