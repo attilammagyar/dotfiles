@@ -146,15 +146,14 @@ PS1="$PS1\$(echo '\w' | sed -r 's/^.*.(.{30})/<\1/')"
 # along with some statistics about uncommitted changes
 PS1="$PS1\$( git branch 2>/dev/null | grep -m1 --color=never '^[*] '"
 PS1="$PS1 | sed 's/^[*] /$WHITE )-\\\\n-($LIGHTCYAN /"
-PS1="$PS1 ; s/\\([^-]\\)\$/\\1 $LIGHTGREEN'\$(git status --porcelain"
-PS1="$PS1 2>/dev/null | wc -l)'/ ; s/ master /$LIGHTRED master /')"
+PS1="$PS1 ; s/\\([^-]\\)\$/\\1 / ; s/ master /$LIGHTRED master /')"
 
 # Update screen title with the last 2 segments of pwd
 PS1="$PS1\\[\\033k\$(echo \"\$PWD\" | sed -r"
 PS1="$PS1 's@^.*/([^/]*/[^/]*)\$@\\1@')\\033\\\\\\]"
 
 # New command to be entered in a new line
-PS1="$PS1 $WHITE)-\n\\\$ $NOCOLOR"
+PS1="$PS1$WHITE)-\n\\\$ $NOCOLOR"
 
 # Adjust the title of the terminal window
 case "$TERM" in
