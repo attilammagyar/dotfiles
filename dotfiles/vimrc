@@ -367,3 +367,11 @@ noremap <C-i> :call GitFindStep()<CR>
 
 " :w!! will save the file as root
 cmap w!! w !sudo tee % >/dev/null
+
+function! HighlightTrailingComma()
+    " Trailing commas to be highlighted in yellow in Python (unintentional tuple).
+    highlight TrailingComma term=reverse ctermbg=Blue guibg=Blue
+    match TrailingComma /,\+$/
+endfunction
+
+autocmd BufEnter *.py exec HighlightTrailingComma()
