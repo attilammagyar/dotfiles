@@ -296,7 +296,7 @@ autocmd BufEnter *.c,*.h,*.css                  let b:cmt_tail = ' */'
 autocmd BufEnter *.html,*.htm,*.tpl             let b:cmt_leader = '<!-- '
 autocmd BufEnter *.html,*.htm,*.tpl             let b:cmt_tail = ' -->'
 autocmd BufEnter *.hpp,*.cpp,*.java,*.php,*.js  let b:cmt_leader = '// '
-autocmd BufEnter *.sh,*.ruby,*.python           let b:cmt_leader = '# '
+autocmd BufEnter *.sh,*.ruby,*.py               let b:cmt_leader = '# '
 autocmd BufEnter *.mail                         let b:cmt_leader = '> '
 autocmd BufEnter *.vim                          let b:cmt_leader = '" '
 noremap <silent> <C-E> :<C-B>silent <C-E>s/^\( *\)\(.*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
