@@ -9,7 +9,7 @@ function! SetIndentation()
         set tabstop=2 shiftwidth=2
     endif
 endfunction
-autocmd BufNewFile,BufRead * exec SetIndentation()
+autocmd BufNewFile,BufRead * call SetIndentation()
 
 " Scroll horizontally one character at a time
 set sidescroll=1
@@ -173,9 +173,9 @@ nnoremap <F4> :GitBlame<CR>
 
 function! OpenAll(command, pattern_to_position_cursor)
     for f in split(system(a:command .  ' 2>/dev/null | grep -Ev ''[.](swp|pyc|pickle)$'''), "\n")
-        exec 'tabe ' . f
+        execute 'tabe ' . f
         if a:pattern_to_position_cursor!=''
-            exec '/' . a:pattern_to_position_cursor
+            execute '/' . a:pattern_to_position_cursor
             nohl
         endif
     endfor
@@ -325,7 +325,7 @@ function! ToggleWrapping()
         set colorcolumn=81
     endif
 endfunction
-autocmd BufNewFile,BufRead * exec ToggleWrapping()
+autocmd BufNewFile,BufRead * call ToggleWrapping()
 
 " Additional rules to turn on syntax highlighting for various file types
 autocmd BufNewFile,BufRead *.md set filetype=markdown
@@ -340,7 +340,7 @@ function! ToggleTabExpansion()
         set noexpandtab
     endif
 endfunction
-autocmd BufNewFile,BufRead * exec ToggleTabExpansion()
+autocmd BufNewFile,BufRead * call ToggleTabExpansion()
 
 " Attempt to locate the step definition for the .feature step under the
 " cursor inside a git repository.
@@ -371,5 +371,4 @@ function! HighlightTrailingComma()
     highlight TrailingComma term=reverse ctermbg=Blue guibg=Blue
     match TrailingComma /,\+$/
 endfunction
-
-autocmd BufEnter *.py exec HighlightTrailingComma()
+autocmd BufEnter *.py call HighlightTrailingComma()
