@@ -39,7 +39,7 @@ session.screen0.maxDisableMove:	false
 session.screen0.edgeSnapThreshold:	10
 session.screen0.windowMenu:	/home/athos/.fluxbox/windowmenu
 session.screen0.colPlacementDirection:	TopToBottom
-session.screen0.noFocusWhileTypingDelay:	0
+session.screen0.noFocusWhileTypingDelay:	600
 session.screen0.tabFocusModel:	ClickToTabFocus
 session.screen0.allowRemoteActions:	false
 session.screen0.windowPlacement:	RowMinOverlapPlacement
