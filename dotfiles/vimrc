@@ -3,7 +3,7 @@ set number
 
 " Indent *.feature files by 2 spaces, anything else by 4
 function! SetIndentation()
-    if empty(matchstr(expand('%'), '\.feature$'))
+    if empty(matchstr(expand('%'), '\.\(feature\|xsd\|xsl\|html\|htm\|css\)$'))
         set tabstop=4 shiftwidth=4
     else
         set tabstop=2 shiftwidth=2
