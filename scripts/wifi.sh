@@ -11,7 +11,10 @@ main()
 
     # service network-manager stop
 
-    ifconfig "$iface" up || exit 1
+    # ip link set enp7s0 down
+
+    rfkill unblock wifi
+    ip link set "$iface" up || exit 1
 
     echo "Scanning available networks:"
     iwlist "$iface" scan | grep --color=never -E "$pattern"
@@ -29,12 +32,13 @@ main()
     echo
     echo "Connecting to '$essid'"
 
-    #iwconfig "$iface" essid "$essid" key "s:$key" || exit 2
+    # iwconfig "$iface" essid "$essid" key "s:$key" || exit 2
 
     config_file="`tempfile`"
 
-    # echo "ap_scan=2" >"$config_file"
-    wpa_passphrase "$essid" "$password" >>"$config_file"
+    echo "ap_scan=1" >"$config_file"
+    wpa_passphrase "$essid" "$password" \
+        | sed "s/network={/network={\\n\\tscan_ssid=1\\n/" >>"$config_file"
 
     password=""
     essid=""
