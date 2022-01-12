@@ -320,6 +320,8 @@ function! ToggleWrapping()
     elseif 0 != len(matchstr(expand('%'), '\.\(txt\|md\)$'))
         set textwidth=79
         set colorcolumn=80
+        " turn off automatic comment leaders
+        set formatoptions=tq
     else
         set textwidth=0
         set colorcolumn=81
