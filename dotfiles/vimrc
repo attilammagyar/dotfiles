@@ -334,9 +334,11 @@ autocmd BufNewFile,BufRead *.md set filetype=markdown
 autocmd BufNewFile,BufRead *.tpl,*.twig set filetype=htmldjango
 autocmd BufNewFile,BufRead *.rst set filetype=rst
 
-" Use tabs in Makefiles, spaces in anything else for indentation
+" Use tabs in Makefiles, go files, TSV files, etc. and spaces in anything
+" else for indentation
 function! ToggleTabExpansion()
-    if empty(matchstr(expand('%'), '\(^\|/\)\(\([Mm]akefile\(\.am\)\?\)\|\(debian/rules\)\|\(.*\.go\)\)$'))
+    let l:pattern = '\(^\|/\)\(\([Mm]akefile\(\.am\)\?\)\|\(debian/rules\)\|\(.*\.go\)\|\(.*\.tsv\)\)$'
+    if empty(matchstr(expand('%'), l:pattern))
         set expandtab
     else
         set noexpandtab
