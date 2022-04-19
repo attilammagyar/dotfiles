@@ -1,5 +1,8 @@
 " Turn on line numbers
 set number
+autocmd BufNewFile,BufRead * set number
+
+set nomodeline
 
 " Indent *.feature files by 2 spaces, anything else by 4
 function! SetIndentation()
@@ -291,13 +294,13 @@ autocmd BufEnter *                              let b:cmt_leader = '# '
 autocmd BufEnter *                              let b:cmt_tail = ''
 autocmd BufEnter *.c,*.h,*.css                  let b:cmt_leader = '/* '
 autocmd BufEnter *.c,*.h,*.css                  let b:cmt_tail = ' */'
-autocmd BufEnter *.html,*.htm,*.tpl             let b:cmt_leader = '<!-- '
-autocmd BufEnter *.html,*.htm,*.tpl             let b:cmt_tail = ' -->'
+autocmd BufEnter *.xml,*.html,*.htm,*.tpl       let b:cmt_leader = '<!-- '
+autocmd BufEnter *.xml,*.html,*.htm,*.tpl       let b:cmt_tail = ' -->'
 autocmd BufEnter *.hpp,*.cpp,*.java,*.php,*.js  let b:cmt_leader = '// '
-autocmd BufEnter *.sh,*.ruby,*.py               let b:cmt_leader = '# '
+autocmd BufEnter *.sh,*.ruby,*.py,*.python      let b:cmt_leader = '# '
 autocmd BufEnter *.mail                         let b:cmt_leader = '> '
-autocmd BufEnter *.vim                          let b:cmt_leader = '" '
-noremap <silent> <C-E> :<C-B>silent <C-E>s/^\( *\)\(.*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
+autocmd BufEnter *.vim,.vimrc,vimrc             let b:cmt_leader = '" '
+noremap <silent> <C-E> :<C-B>silent <C-E>s/^\( *\)\([^ ].*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
 noremap <silent> <C-U> :<C-B>silent <C-E>s/^\( *\)<C-R>=escape(b:cmt_leader,'\/*')<CR>\(.*\)<C-R>=escape(b:cmt_tail,'\/*')<CR>$/\1\2/e<CR>:nohlsearch<CR>
 
 " Use .vim_tags as a tagfile to offer suggestions when pressing Ctrl+P.
