@@ -46,5 +46,7 @@ backup_name="$backup_path/"$(basename "$directory")"-"$(date '+%Y-%m-%d-%H-%M-%S
 
 echo -e "\nBackup will be created to $backup_name.tgz.aes256"
 
-tar -czvf - --index-file="$backup_name.index" "$directory/" | openssl aes-256-ecb -salt -k "$password" | dd of="$backup_name.tgz.aes256" && echo "OK"
+tar -czvf - --index-file="$backup_name.index" "$directory/" \
+    | openssl aes-256-ecb -salt -k "$password" -md md5 \
+    | dd of="$backup_name.tgz.aes256" && echo "OK"
 

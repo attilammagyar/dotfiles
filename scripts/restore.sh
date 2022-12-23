@@ -31,6 +31,8 @@ echo -e "\nRestoring files from $backup_file"
 
 abspath=$(cd $(dirname "$backup_file") ; pwd)"/"$(basename "$backup_file") 
 cd "$restore_dir"
-dd if="$abspath" | openssl aes-256-ecb -d -k "$password" | tar -xzvf - && echo "OK"
+dd if="$abspath" \
+    | openssl aes-256-ecb -d -k "$password" -md md5 \
+    | tar -xzvf - && echo "OK"
 cd -
 
