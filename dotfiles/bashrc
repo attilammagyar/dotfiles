@@ -9,7 +9,7 @@ export EDITOR="vim"
 export JUNIT_HOME=~/"java/junit"
 export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.12.jar:$JUNIT_HOME/hamcrest-core-1.3.jar"
 
-export CC=colorgcc
+export CC=gcc
 export CFLAGS="-pipe"
 export MAKEFLAGS="-j2"
 
