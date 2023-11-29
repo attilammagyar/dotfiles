@@ -6,7 +6,7 @@ set nomodeline
 
 " Indent *.feature files by 2 spaces, anything else by 4
 function! SetIndentation()
-    if empty(matchstr(expand('%'), '\.\(feature\|xml\|xsd\|xsl\|html\|htm\|css\)$'))
+    if empty(matchstr(expand('%'), '\.\(feature\|xml\|xsd\|xsl\|html\|htm\|svg\|css\|tex\)$'))
         set tabstop=4 shiftwidth=4
     else
         set tabstop=2 shiftwidth=2
@@ -299,6 +299,7 @@ autocmd BufEnter *.xml,*.html,*.htm,*.tpl       let b:cmt_tail = ' -->'
 autocmd BufEnter *.hpp,*.cpp,*.java,*.php,*.js  let b:cmt_leader = '// '
 autocmd BufEnter *.sh,*.ruby,*.py,*.python      let b:cmt_leader = '# '
 autocmd BufEnter *.mail                         let b:cmt_leader = '> '
+autocmd BufEnter *.tex                          let b:cmt_leader = '% '
 autocmd BufEnter *.vim,.vimrc,vimrc             let b:cmt_leader = '" '
 noremap <silent> <C-E> :<C-B>silent <C-E>s/^\( *\)\([^ ].*\)$/\1<C-R>=escape(b:cmt_leader,'\/')<CR>\2<C-R>=escape(b:cmt_tail,'\/')<CR>/<CR>:nohlsearch<CR>
 noremap <silent> <C-U> :<C-B>silent <C-E>s/^\( *\)<C-R>=escape(b:cmt_leader,'\/*')<CR>\(.*\)<C-R>=escape(b:cmt_tail,'\/*')<CR>$/\1\2/e<CR>:nohlsearch<CR>
