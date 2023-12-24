@@ -4,7 +4,7 @@ autocmd BufNewFile,BufRead * set number
 
 set nomodeline
 
-" Indent *.feature files by 2 spaces, anything else by 4
+" Indent *.feature, *.xml, etc. files by 2 spaces, anything else by 4
 function! SetIndentation()
     if empty(matchstr(expand('%'), '\.\(feature\|xml\|xsd\|xsl\|html\|htm\|svg\|css\|tex\)$'))
         set tabstop=4 shiftwidth=4
