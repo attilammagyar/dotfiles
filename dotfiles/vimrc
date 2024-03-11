@@ -385,3 +385,28 @@ function! HighlightTrailingComma()
     match TrailingComma /,\+$/
 endfunction
 autocmd BufEnter *.py call HighlightTrailingComma()
+
+function! HighlightAllDots()
+    " All dots to be highlighted in JavaScript, in order to avoid typos like
+    " this:
+    "
+    "     (function () {
+    "
+    "         'use strict';
+    "
+    "         function foo(a, b)
+    "         {
+    "             console.log([a ? 1 : 0, b ? 1 : 0]);
+    "         }
+    "
+    "         foo(true, true);      // Array [ 1, 1 ]
+    "         foo(false, false);    // Array [ 0, 0 ]
+    "         foo(true. false);     // Array [ 0, 0 ]
+    "         foo(false. true);     // Array [ 0, 0 ]
+    "
+    "    })();
+
+    highlight AllDots term=reverse ctermbg=Blue guibg=Blue
+    match AllDots /\.\+/
+endfunction
+autocmd BufEnter *.js call HighlightAllDots()
