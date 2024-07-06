@@ -348,6 +348,7 @@ endfunction
 autocmd BufNewFile,BufRead * call ToggleWrapping()
 
 " Additional rules to turn on syntax highlighting for various file types
+autocmd BufNewFile,BufRead *.jsfx set filetype=javascript
 autocmd BufNewFile,BufRead *.md set filetype=markdown
 autocmd BufNewFile,BufRead *.tpl,*.twig set filetype=htmldjango
 autocmd BufNewFile,BufRead *.rst set filetype=rst
