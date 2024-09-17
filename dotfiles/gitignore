@@ -1,3 +1,4 @@
 .*.swp
+.ipynb_checkpoints
 .vim_tags
 .vim_run_tests.sh
