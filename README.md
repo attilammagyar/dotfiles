@@ -13,6 +13,7 @@ Files and directories
     * `gitconfig`
     * `gitignore`
  * `scripts`: helper scripts for `dotfiles` and automations of repetitive tasks
+    * `ai.py`: standalone CLI tool for chatting with various LLMs (work-in-progress)
     * `backup.sh`: create an encrypted and gzipped tarball from a directory
     * `restore.sh`: restore a directory from a backup created by `backup.sh`
     * `vid2android.sh`: convert and resize videos for my android phone (2.2)
