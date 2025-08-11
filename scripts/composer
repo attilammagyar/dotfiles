@@ -1,4 +1,0 @@
-#!/bin/bash
-
-php ~/dev-tools/php/composer/composer.phar "$@"
-exit $?

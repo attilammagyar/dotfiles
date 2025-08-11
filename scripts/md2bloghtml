@@ -1,9 +1,0 @@
-#!/bin/bash
-
-markdown "$1" \
-    | sed 's/<h1>/<h1 style="font-weight: bold; font-size: 1.32em;">/g' \
-    | sed 's/<h2>/<h2 style="font-weight: bold; font-size: 1.29em;">/g' \
-    | sed 's/<p>/<p style="font-size: 1.27em; line-height: 1.37em;">/g' \
-    | sed 's/<blockquote>/<blockquote style="font-size: 1.27em; line-height: 1.33em;">/g' \
-    | sed 's/<pre>/<pre style="overflow: auto; margin: 1.2em; padding: 0.5em; background: #182028; font-size: 1.5em; color: #d8e8f0; line-height: 1.6em;">/g' \
-    | cat

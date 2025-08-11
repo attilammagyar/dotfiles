@@ -16,21 +16,14 @@ Files and directories
     * `ai.py`: standalone CLI tool for chatting with various LLMs (work-in-progress)
     * `backup.sh`: create an encrypted and gzipped tarball from a directory
     * `restore.sh`: restore a directory from a backup created by `backup.sh`
-    * `vid2android.sh`: convert and resize videos for my android phone (2.2)
     * `bake`: make-shift wrapper around make to do compiling and test
               installations out-of-tree
     * `loudness.sh`: print loudness statistics for audio files using ffmpeg
-    * `md2bloghtml`: convert markdown files to HTML to be used in my company
-                     blog
     * `mntprvt`: mount the encrypted part of my home directory
-    * `mp3rename.sh`: rename a bunch of MP3 files according to their ID3 info
     * `vim_ctags.sh`: `ctags` helper script for my `.vimrc`
     * `vim_git.sh`: `git` helper script for my `.vimrc`
     * `vim_lookup_docs.sh`: API documentation finder for my `.vimrc`
     * `vim_run_tests.sh`: test runner script for my `.vimrc`
-    * `update_ci_screenshots.sh`: update Jenkins or Travis CI screenshots for
-                                  screensaver
-    * `webshot.py`: CLI script to take a screenshot from a webpage URL
     * `wifi.sh`: connect to wi-fi from console, without `network-manager`
     * `gitgrepfight.sh`: compare the number of matches of regular expressions
                          inside a `git` repository
