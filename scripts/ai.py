@@ -41,6 +41,7 @@ ENV_VAR_NAMES = {
     "openai": "OPENAI_API_KEY",
 }
 
+# The winner is the last one which finds a match in a sorted model list.
 DEFAULT_MODEL_RE = (
     re.compile(r"^deepseek/deepseek-chat$"),
     re.compile(r"^anthropic/claude-sonnet-[0-9]+(-[0-9]+)?$"),
