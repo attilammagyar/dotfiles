@@ -35,11 +35,14 @@ MODELS_CACHE_TTL_SECONDS = 3 * 24 * 60 * 60
 
 
 ENV_VAR_NAMES = {
+    "anthropic": "ANTHROPIC_API_KEY",
     "google": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
 }
 
 DEFAULT_MODEL_RE = (
+    re.compile(r"^anthropic/claude-sonnet-[0-9]+(-[0-9]+)?$"),
+    re.compile(r"^anthropic/claude-opus-[0-9]+(-[0-9]+)?$"),
     re.compile(r"^google/gemini-[0-9.]+(-[a-z_-]+)$"),
     re.compile(r"^google/gemini-[0-9.]+-pro(-latest)?$"),
     re.compile(r"^openai/gpt-[0-9o]+(-mini)?$"),
@@ -88,6 +91,7 @@ def main(argv):
     api_keys = collect_api_keys()
 
     ai_client_cls = {
+        "anthropic": AnthropicClient,
         "google": GoogleClient,
         "openai": OpenAiClient,
     }
@@ -305,6 +309,190 @@ class AiClient:
                 return default
 
         return container
+
+
+class AnthropicClient(AiClient):
+    # https://docs.anthropic.com/en/api/messages
+    # https://console.anthropic.com/settings/limits
+
+    URL_CHAT = "https://api.anthropic.com/v1/messages"
+    URL_MODELS = "https://api.anthropic.com/v1/models?limit=1000"
+
+    def list_models(self) -> collections.abc.Sequence[str]:
+        raw_response = self.http_request(
+            "GET",
+            self.URL_MODELS,
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": self._api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        response = json.loads(raw_response)
+
+        return [
+            model["id"]
+            for model in self.get_item(response, "data", [])
+            if model["type"] == "model"
+        ]
+
+    def respond(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=False,
+        )
+        response_bytes = self.http_request("POST", self.URL_CHAT, headers, body)
+
+        try:
+            response = json.loads(response_bytes)
+
+        except json.JSONDecodeError:
+            pass
+
+        else:
+            for content in self.get_item(response, "content", []):
+                content_type = self.get_item(content, "type")
+
+                if content_type == "text":
+                    yield AiResponse(
+                        is_delta=False,
+                        is_reasoning=False,
+                        text=self.get_item(content, "text", "")
+                    )
+
+                elif content_type == "thinking":
+                    yield AiResponse(
+                        is_delta=False,
+                        is_reasoning=True,
+                        text=self.get_item(content, "thinking", ""),
+                    )
+
+    def respond_streaming(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=True,
+        )
+
+        for event_type, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
+            try:
+                data = json.loads(data_bytes)
+
+            except json.JSONDecodeError:
+                continue
+
+            if event_type == "content_block_start":
+                content_type = self.get_item(data, "content_block.type")
+
+                if content_type == "thinking":
+                    yield AiResponse(
+                        is_delta=True,
+                        is_reasoning=True,
+                        text=self.get_item(data, "content_block.thinking", ""),
+                    )
+
+                elif content_type == "text":
+                    yield AiResponse(
+                        is_delta=True,
+                        is_reasoning=False,
+                        text=self.get_item(data, "content_block.text", ""),
+                    )
+
+            elif event_type == "content_block_delta":
+                delta_type = self.get_item(data, "delta.type")
+
+                if delta_type == "thinking_delta":
+                    yield AiResponse(
+                        is_delta=True,
+                        is_reasoning=True,
+                        text=self.get_item(data, "delta.thinking", ""),
+                    )
+
+                elif delta_type == "text_delta":
+                    yield AiResponse(
+                        is_delta=True,
+                        is_reasoning=False,
+                        text=self.get_item(data, "delta.text", ""),
+                    )
+
+    def _build_request(self, model, conversation, temperature, reasoning, stream):
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self._api_key,
+            "anthropic-version": "2023-06-01",
+            "anthropic-beta": "extended-cache-ttl-2025-04-11",
+        }
+        system_prompt, messages = self._convert_conversation(conversation)
+
+        body = {
+            "model": model,
+            "temperature": temperature,
+            "stream": stream,
+            "messages": messages,
+            "max_tokens": 32768,
+        }
+
+        if system_prompt is not None:
+            body["system"] = system_prompt
+
+        if reasoning == Reasoning.ON:
+            body["thinking"] = {
+                "type": "enabled",
+                "budget_tokens": 16384,
+            }
+
+        elif reasoning == Reasoning.OFF:
+            body["thinking"] = {"type": "disabled"}
+
+        return headers, json.dumps(body).encode("utf-8")
+
+    def _convert_conversation(self, conversation):
+        messages = []
+        system_prompt = None
+
+        for message in conversation:
+            if message.type == MessageType.SYSTEM:
+                system_prompt = self._wrap_text(message.text)
+
+            else:
+                messages.append(
+                    {
+                        "role": "assistant" if message.type == MessageType.AI else "user",
+                        "content": self._wrap_text(message.text),
+                    }
+                )
+
+        return system_prompt, messages
+
+    @staticmethod
+    def _wrap_text(text: str) -> typing.List:
+        return [
+            {
+                "type": "text",
+                "text": text,
+                "cache_control": {
+                    "type": "ephemeral",
+                    "ttl": "1h",
+                },
+            },
+        ]
 
 
 class GoogleClient(AiClient):
@@ -612,6 +800,7 @@ def read_api_keys_file() -> typing.Dict[str, str]:
 Expected format (omit the keys you don't use):
 
 {
+    "anthropic": "Anthropic Claude API key here (https://console.anthropic.com/settings/keys)",
     "google": "Google Gemini API key here (https://aistudio.google.com/apikey)",
     "openai": "OpenAI ChatGPT API key here (https://platform.openai.com/settings/organization/api-keys)",
 }
