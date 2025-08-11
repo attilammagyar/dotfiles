@@ -478,33 +478,46 @@ class AnthropicClient(AiClient):
     def _convert_conversation(self, conversation):
         messages = []
         system_prompt = None
+        remaining_cached_block = 4
 
         for message in conversation:
             if message.type == MessageType.SYSTEM:
-                system_prompt = self._wrap_text(message.text)
+                system_prompt, remaining_cached_block = self._wrap_text(
+                    message.text,
+                    remaining_cached_block,
+                )
 
             else:
+                text, remaining_cached_block = self._wrap_text(
+                    message.text,
+                    remaining_cached_block,
+                )
                 messages.append(
                     {
                         "role": "assistant" if message.type == MessageType.AI else "user",
-                        "content": self._wrap_text(message.text),
+                        "content": text,
                     }
                 )
 
         return system_prompt, messages
 
     @staticmethod
-    def _wrap_text(text: str) -> typing.List:
-        return [
-            {
-                "type": "text",
-                "text": text,
-                "cache_control": {
-                    "type": "ephemeral",
-                    "ttl": "1h",
+    def _wrap_text(text: str, remaining_cached_block: int) -> typing.List:
+        if remaining_cached_block > 0:
+            wrapped_text = [
+                {
+                    "type": "text",
+                    "text": text,
+                    "cache_control": {
+                        "type": "ephemeral",
+                        "ttl": "1h",
+                    },
                 },
-            },
-        ]
+            ]
+
+            return wrapped_text, remaining_cached_block - 1
+
+        return [{"type": "text", "text": text}], 0
 
 
 class DeepSeekClient(AiClient):
