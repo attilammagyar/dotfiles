@@ -118,13 +118,21 @@ def main(argv):
         )
 
         for chunk in messenger.ask("", lambda conversation: conversation_in):
-            print(chunk, file=sys.stderr, end="")
+            info(chunk, end="")
 
-        print("", file=sys.stderr)
+        info("")
 
         print(messenger.conversation_to_str())
 
     return 0
+
+
+def info(message: str, end=os.linesep):
+    print(message, end=end, file=sys.stderr)
+
+
+def error(message: str):
+    info(message)
 
 
 class HttpError(Exception):
@@ -565,7 +573,7 @@ def collect_api_keys() -> typing.Dict[str, str]:
         api_key = os.getenv(env_var_name)
 
         if api_key is not None:
-            print(f"Using {env_var_name} for {api_name}.", file=sys.stderr)
+            info(f"Using {env_var_name} for {api_name}.")
             api_keys[api_name] = api_key
 
     return api_keys
@@ -573,11 +581,11 @@ def collect_api_keys() -> typing.Dict[str, str]:
 
 def read_api_keys_file() -> typing.Dict[str, str]:
     if not os.path.isfile(API_KEYS_FILE_NAME):
-        print(f"{API_KEYS_FILE_NAME} not found.", file=sys.stderr)
+        error(f"{API_KEYS_FILE_NAME} not found.")
 
         return {}
 
-    print(f"Loading keys from {API_KEYS_FILE_NAME}...", file=sys.stderr)
+    info(f"Loading keys from {API_KEYS_FILE_NAME}...")
 
     api_keys = {}
 
@@ -598,12 +606,9 @@ def read_api_keys_file() -> typing.Dict[str, str]:
                 api_keys[api_name] = api_key
 
     except Exception as error:
-        print(
-            f"ERROR reading {API_KEYS_FILE_NAME}: {type(error)}: {error}",
-            file=sys.stderr,
-        )
-        print("", file=sys.stderr)
-        print("""\
+        error(f"ERROR reading {API_KEYS_FILE_NAME}: {type(error)}: {error}")
+        error("")
+        error("""\
 Expected format (omit the keys you don't use):
 
 {
@@ -611,7 +616,6 @@ Expected format (omit the keys you don't use):
     "openai": "OpenAI ChatGPT API key here (https://platform.openai.com/settings/organization/api-keys)",
 }
 """,
-            file=sys.stderr,
         )
 
     return api_keys
@@ -623,14 +627,13 @@ def list_models(
     cache = read_models_cache(ai_clients)
 
     if cache is None:
-        print(
-            f"Querying models, updating {MODELS_CACHE_FILE_NAME}...",
-            file=sys.stderr,
-        )
+        info(f"Querying models, updating {MODELS_CACHE_FILE_NAME}...")
 
         cache = {}
 
         for provider, ai_client in ai_clients.items():
+            info(f" * {provider}...")
+
             cache[provider] = ai_client.list_models()
 
         with open(MODELS_CACHE_FILE_NAME, "w") as f:
@@ -639,9 +642,7 @@ def list_models(
     models = []
 
     for provider, ai_client in ai_clients.items():
-        models.extend(
-            [f"{provider}/{model}" for model in cache[provider]]
-        )
+        models.extend([f"{provider}/{model}" for model in cache[provider]])
 
     return models
 
@@ -1263,10 +1264,8 @@ class AiCmd(cmd.Cmd):
 
             print(f"{filename} saved.")
 
-        except Exception as error:
-            self._print_error(
-                f"error writing {filename}: {type(error)}: {error}"
-            )
+        except Exception as err:
+            self._print_error(f"error writing {filename}: {type(err)}: {err}")
 
             return
 
@@ -1304,10 +1303,9 @@ class AiCmd(cmd.Cmd):
 
         except HttpError as http_err:
             print("")
-
-            print(f"HTTP ERROR: {http_err.status} ({http_err.reason})", file=sys.stderr)
-            print("", file=sys.stderr)
-            print(f"{http_err.body}", file=sys.stderr)
+            print(f"HTTP ERROR: {http_err.status} ({http_err.reason})")
+            print("")
+            print(f"{http_err.body}")
 
     def _edit_conversation(self, conversation: str) -> typing.Optional[str]:
         if self._edit_conv_filename is None:
@@ -1324,12 +1322,12 @@ class AiCmd(cmd.Cmd):
             with tmp_conv_file_ctx as tmp_conv_file:
                 self._edit_conv_filename = tmp_conv_file.name
 
-        print(f"Editing {self._edit_conv_filename}...", file=sys.stderr)
+        print(f"Editing {self._edit_conv_filename}...")
 
         with open(self._edit_conv_filename, "w") as f:
             f.write(conversation)
 
-        print(f"Reading conversation from {self._edit_conv_filename}...", file=sys.stderr)
+        print(f"Reading conversation from {self._edit_conv_filename}...")
 
         try:
             args = [self._editor, self._edit_conv_filename]
