@@ -1507,7 +1507,7 @@ class AiCmd(cmd.Cmd):
         return self._ai_messenger.filter_models_by_prefix(text)
 
     def do_reasoning(self, arg):
-        "Turn reasoning on or off, or use the default behavior of the model."
+        "Turn reasoning on or off, or use the default behavior of the model. (Ignored for some providers.)"
 
         arg = arg.strip()
 
