@@ -36,11 +36,13 @@ MODELS_CACHE_TTL_SECONDS = 3 * 24 * 60 * 60
 
 ENV_VAR_NAMES = {
     "anthropic": "ANTHROPIC_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
     "google": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
 }
 
 DEFAULT_MODEL_RE = (
+    re.compile(r"^deepseek/deepseek-chat$"),
     re.compile(r"^anthropic/claude-sonnet-[0-9]+(-[0-9]+)?$"),
     re.compile(r"^anthropic/claude-opus-[0-9]+(-[0-9]+)?$"),
     re.compile(r"^google/gemini-[0-9.]+(-[a-z_-]+)$"),
@@ -92,6 +94,7 @@ def main(argv):
 
     ai_client_cls = {
         "anthropic": AnthropicClient,
+        "deepseek": DeepSeekClient,
         "google": GoogleClient,
         "openai": OpenAiClient,
     }
@@ -495,6 +498,128 @@ class AnthropicClient(AiClient):
         ]
 
 
+class DeepSeekClient(AiClient):
+    # https://api-docs.deepseek.com/api/create-chat-completion
+
+    URL_CHAT = "https://api.deepseek.com/chat/completions"
+    URL_MODELS = "https://api.deepseek.com/models"
+
+    def list_models(self) -> collections.abc.Sequence[str]:
+        raw_response = self.http_request(
+            "GET",
+            self.URL_MODELS,
+            headers={
+                "Authorization": "Bearer " + self._api_key,
+                "Content-Type": "application/json",
+            },
+        )
+        response = json.loads(raw_response)
+
+        return [
+            model["id"]
+            for model in self.get_item(response, "data", [])
+            if model["object"] == "model"
+        ]
+
+    def respond(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=False,
+        )
+        response_bytes = self.http_request("POST", self.URL_CHAT, headers, body)
+
+        try:
+            response = json.loads(response_bytes)
+
+        except json.JSONDecodeError:
+            pass
+
+        else:
+            for choice in self.get_item(response, "choices", []):
+                if self.get_item(choice, "message.role") != "assistant":
+                    continue
+
+                reasoning = self.get_item(choice, "message.reasoning_content")
+                text = self.get_item(choice, "message.content", "")
+
+                if reasoning is not None:
+                    yield AiResponse(is_delta=False, is_reasoning=True, text=reasoning)
+
+                yield AiResponse(is_delta=False, is_reasoning=False, text=text)
+
+    def respond_streaming(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=True,
+        )
+
+        for event_type, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
+            try:
+                data = json.loads(data_bytes)
+
+            except json.JSONDecodeError:
+                continue
+
+            if self.get_item(data, "object") == "chat.completion.chunk":
+                for choice in self.get_item(data, "choices", []):
+                    reasoning = self.get_item(choice, "delta.reasoning_content")
+
+                    if reasoning is not None:
+                        yield AiResponse(is_delta=True, is_reasoning=True, text=reasoning)
+
+                    text = self.get_item(choice, "delta.content")
+
+                    if text is not None:
+                        yield AiResponse(is_delta=True, is_reasoning=False, text=text)
+
+    def _build_request(self, model, conversation, temperature, reasoning, stream):
+        headers = {
+            "Authorization": "Bearer " + self._api_key,
+            "Content-Type": "application/json",
+        }
+        body = {
+            "model": model,
+            "temperature": temperature,
+            "messages": self._convert_conversation(conversation),
+            "stream": stream,
+        }
+
+        return headers, json.dumps(body).encode("utf-8")
+
+    def _convert_conversation(self, conversation):
+        roles = {
+            MessageType.SYSTEM: "system",
+            MessageType.USER: "user",
+            MessageType.AI: "assistant",
+        }
+
+        return [
+            {
+                "role": roles.get(message.type, "user"),
+                "content": message.text,
+            }
+            for message in conversation
+        ]
+
+
 class GoogleClient(AiClient):
     # https://ai.google.dev/gemini-api/docs/text-generation
     # https://ai.google.dev/api/generate-content#method:-models.generatecontent
@@ -801,6 +926,7 @@ Expected format (omit the keys you don't use):
 
 {
     "anthropic": "Anthropic Claude API key here (https://console.anthropic.com/settings/keys)",
+    "deepseek": "DeepSeek R1 API key here (https://platform.deepseek.com/api_keys)",
     "google": "Google Gemini API key here (https://aistudio.google.com/apikey)",
     "openai": "OpenAI ChatGPT API key here (https://platform.openai.com/settings/organization/api-keys)",
 }
