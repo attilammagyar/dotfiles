@@ -576,7 +576,7 @@ class GoogleClient(AiClient):
                 "includeThoughts": True,
             }
 
-        return json.dumps(body)
+        return json.dumps(body).encode("utf-8")
 
     def _convert_conversation(self, conversation):
         contents = []
@@ -598,17 +598,17 @@ class GoogleClient(AiClient):
 
     def _process_response(
             self,
-            response: bytes,
+            response_bytes: bytes,
             is_delta: bool,
     ) -> typing.Iterator[AiResponse]:
         try:
-            result = json.loads(response)
+            response = json.loads(response_bytes)
 
         except json.JSONDecodeError:
             pass
 
         else:
-            for candidate in self.get_item(result, "candidates", []):
+            for candidate in self.get_item(response, "candidates", []):
                 if self.get_item(candidate, "content.role") != "model":
                     continue
 
@@ -712,7 +712,7 @@ class OpenAiClient(AiClient):
         if reasoning == Reasoning.ON:
             body["reasoning"] = {"effort": "medium"}
 
-        return headers, json.dumps(body)
+        return headers, json.dumps(body).encode("utf-8")
 
     def _convert_conversation(self, conversation):
         roles = {
@@ -731,17 +731,17 @@ class OpenAiClient(AiClient):
 
     def _process_complete_response(
             self,
-            response: bytes,
+            response_bytes: bytes,
             path: str,
     ) -> typing.Iterator[AiResponse]:
         try:
-            parsed = json.loads(response)
+            response = json.loads(response_bytes)
 
         except json.JSONDecodeError:
             pass
 
         else:
-            for output in self.get_item(parsed, path, []):
+            for output in self.get_item(response, path, []):
                 if self.get_item(output, "type") != "message":
                     continue
 
