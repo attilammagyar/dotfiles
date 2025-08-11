@@ -44,6 +44,7 @@ ENV_VAR_NAMES = {
 # The winner is the last one which finds a match in a sorted model list.
 DEFAULT_MODEL_RE = (
     re.compile(r"^deepseek/deepseek-chat$"),
+    re.compile(r"^anthropic/claude.*$"),
     re.compile(r"^anthropic/claude-sonnet-[0-9]+(-[0-9]+)?$"),
     re.compile(r"^anthropic/claude-opus-[0-9]+(-[0-9]+)?$"),
     re.compile(r"^google/gemini-[0-9.]+(-[a-z_-]+)$"),
