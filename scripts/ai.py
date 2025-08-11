@@ -329,6 +329,7 @@ class AnthropicClient(AiClient):
             self.URL_MODELS,
             headers={
                 "Content-Type": "application/json",
+                "Accept": "application/json",
                 "x-api-key": self._api_key,
                 "anthropic-version": "2023-06-01",
             },
@@ -440,6 +441,7 @@ class AnthropicClient(AiClient):
     def _build_request(self, model, conversation, temperature, reasoning, stream):
         headers = {
             "Content-Type": "application/json",
+            "Accept": "application/json",
             "x-api-key": self._api_key,
             "anthropic-version": "2023-06-01",
             "anthropic-beta": "extended-cache-ttl-2025-04-11",
@@ -510,10 +512,7 @@ class DeepSeekClient(AiClient):
         raw_response = self.http_request(
             "GET",
             self.URL_MODELS,
-            headers={
-                "Authorization": "Bearer " + self._api_key,
-                "Content-Type": "application/json",
-            },
+            headers=self._build_request_headers(),
         )
         response = json.loads(raw_response)
 
@@ -592,11 +591,14 @@ class DeepSeekClient(AiClient):
                     if text is not None:
                         yield AiResponse(is_delta=True, is_reasoning=False, text=text)
 
-    def _build_request(self, model, conversation, temperature, reasoning, stream):
-        headers = {
+    def _build_request_headers(self):
+        return {
             "Authorization": "Bearer " + self._api_key,
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
+
+    def _build_request(self, model, conversation, temperature, reasoning, stream):
         body = {
             "model": model,
             "temperature": temperature,
@@ -604,7 +606,7 @@ class DeepSeekClient(AiClient):
             "stream": stream,
         }
 
-        return headers, json.dumps(body).encode("utf-8")
+        return self._build_request_headers(), json.dumps(body).encode("utf-8")
 
     def _convert_conversation(self, conversation):
         roles = {
@@ -630,11 +632,16 @@ class GoogleClient(AiClient):
     URL_TPL_CHAT_STREAM = "https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse&key={api_key}"
     URL_TPL_MODELS = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key={api_key}"
 
+    HEADERS = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+
     def list_models(self) -> collections.abc.Sequence[str]:
         raw_response = self.http_request(
             "GET",
             self.URL_TPL_MODELS.format(api_key=self._api_key),
-            headers={"Content-Type": "application/json"},
+            headers=self.HEADERS,
         )
         response = json.loads(raw_response)
 
@@ -652,9 +659,8 @@ class GoogleClient(AiClient):
             reasoning: Reasoning,
     ) -> typing.Iterator[AiResponse]:
         url = self.URL_TPL_CHAT.format(model=model, api_key= self._api_key)
-        headers = {"Content-Type": "application/json"}
         body = self._build_request_body(conversation, temperature, reasoning)
-        response = self.http_request("POST", url, headers, body)
+        response = self.http_request("POST", url, self.HEADERS, body)
 
         yield from self._process_response(response, is_delta=True)
 
@@ -666,10 +672,9 @@ class GoogleClient(AiClient):
             reasoning: Reasoning,
     ) -> typing.Iterator[AiResponse]:
         url = self.URL_TPL_CHAT_STREAM.format(model=model, api_key= self._api_key)
-        headers = {"Content-Type": "application/json"}
         body = self._build_request_body(conversation, temperature, reasoning)
 
-        for event_type, data in self.http_sse("POST", url, headers, body):
+        for event_type, data in self.http_sse("POST", url, self.HEADERS, body):
             yield from self._process_response(data, is_delta=True)
 
     def _build_request_body(self, conversation, temperature, reasoning):
@@ -761,10 +766,7 @@ class OpenAiClient(AiClient):
         raw_response = self.http_request(
             "GET",
             self.URL_MODELS,
-            headers={
-                "Authorization": "Bearer " + self._api_key,
-                "Content-Type": "application/json",
-            },
+            headers=self._build_request_headers(),
         )
         response = json.loads(raw_response)
 
@@ -824,11 +826,14 @@ class OpenAiClient(AiClient):
                     "response.output",
                 )
 
-    def _build_request(self, model, conversation, temperature, reasoning, stream):
-        headers = {
+    def _build_request_headers(self):
+        return {
             "Authorization": "Bearer " + self._api_key,
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
+
+    def _build_request(self, model, conversation, temperature, reasoning, stream):
         body = {
             "model": model,
             "temperature": temperature,
@@ -839,7 +844,7 @@ class OpenAiClient(AiClient):
         if reasoning == Reasoning.ON:
             body["reasoning"] = {"effort": "medium"}
 
-        return headers, json.dumps(body).encode("utf-8")
+        return self._build_request_headers(), json.dumps(body).encode("utf-8")
 
     def _convert_conversation(self, conversation):
         roles = {
