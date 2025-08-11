@@ -39,10 +39,14 @@ ENV_VAR_NAMES = {
     "deepseek": "DEEPSEEK_API_KEY",
     "google": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
+    "perplexity": "PERPLEXITY_API_KEY",
 }
 
 # The winner is the last one which finds a match in a sorted model list.
 DEFAULT_MODEL_RE = (
+    re.compile(r"^perplexity/sonar.*$"),
+    re.compile(r"^perplexity/sonar-pro$"),
+    re.compile(r"^perplexity/sonar-reasoning-pro$"),
     re.compile(r"^deepseek/deepseek-chat$"),
     re.compile(r"^anthropic/claude.*$"),
     re.compile(r"^anthropic/claude-sonnet-[0-9]+(-[0-9]+)?$"),
@@ -99,6 +103,7 @@ def main(argv):
         "deepseek": DeepSeekClient,
         "google": GoogleClient,
         "openai": OpenAiClient,
+        "perplexity": PerplexityClient,
     }
 
     ai_clients = {
@@ -890,6 +895,208 @@ class OpenAiClient(AiClient):
                     yield AiResponse(is_delta=False, is_reasoning=False, text=text)
 
 
+class PerplexityClient(AiClient):
+    # https://docs.perplexity.ai/api-reference/chat-completions
+
+    URL_CHAT = "https://api.perplexity.ai/chat/completions"
+
+    def list_models(self) -> collections.abc.Sequence[str]:
+        return [
+            "sonar",
+            "sonar-pro",
+            "sonar-reasoning-pro",
+        ]
+
+    def respond(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=False,
+        )
+        response_bytes = self.http_request("POST", self.URL_CHAT, headers, body)
+
+        try:
+            response = json.loads(response_bytes)
+
+        except json.JSONDecodeError:
+            pass
+
+        else:
+            content = self._find_content(response, "message")
+            citations = self._format_citations(
+                self.get_item(response, "citations", []),
+                self.get_item(response, "search_results", []),
+            )
+            reasoning, text = self._extract_response_parts(content)[:2]
+
+            if reasoning != "":
+                yield AiResponse(is_delta=False, is_reasoning=True, text=reasoning)
+
+            yield AiResponse(is_delta=False, is_reasoning=False, text=citations + text)
+
+    def respond_streaming(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=True,
+        )
+
+        reasoning_started = False
+        old_text_started = False
+        text_started = False
+        citations = None
+
+        for _, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
+            try:
+                data = json.loads(data_bytes)
+
+            except json.JSONDecodeError:
+                continue
+
+            if self.get_item(data, "object") != "chat.completion":
+                continue
+
+            if citations is None:
+                citations = self._format_citations(
+                    self.get_item(data, "citations", []),
+                    self.get_item(data, "search_results", []),
+                )
+
+            content = self._find_content(data, "delta")
+
+            old_text_started = text_started
+            reasoning, text, reasoning_started, text_started = (
+                self._extract_response_parts(
+                    content,
+                    reasoning_started,
+                    text_started,
+                )
+            )
+
+            if reasoning_started and reasoning != "":
+                yield AiResponse(is_delta=True, is_reasoning=True, text=reasoning)
+
+            if text_started:
+                if not old_text_started:
+                    yield AiResponse(is_delta=True, is_reasoning=False, text=citations)
+
+                yield AiResponse(is_delta=True, is_reasoning=False, text=text)
+
+    def _build_request(self, model, conversation, temperature, reasoning, stream):
+        headers = {
+            "Authorization": "Bearer " + self._api_key,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        body = {
+            "model": model,
+            "temperature": temperature,
+            "messages": self._convert_conversation(conversation),
+            "return_related_questions": False,
+            "stream": stream,
+        }
+
+        return headers, json.dumps(body).encode("utf-8")
+
+    def _convert_conversation(self, conversation):
+        roles = {
+            MessageType.SYSTEM: "system",
+            MessageType.USER: "user",
+            MessageType.AI: "assistant",
+        }
+
+        return [
+            {
+                "role": roles.get(message.type, "user"),
+                "content": message.text,
+            }
+            for message in conversation
+        ]
+
+    @staticmethod
+    def _format_citations(citations, search_results):
+        citations_text = ""
+        search_results_text = ""
+
+        if len(citations) > 0:
+            citations_text = (
+                "Citations:\n"
+                + ("\n".join(f"{i + 1}. {url}" for i, url in enumerate(citations)))
+                + "\n\n"
+            )
+
+        if len(search_results) > 0:
+            search_results_text = (
+                "Search results:\n"
+                + (
+                    "\n".join(
+                        f"{i + 1}. {obj['title']} - {obj['url']}"
+                        for i, obj in enumerate(search_results)
+                    )
+                )
+                + "\n\n"
+            )
+
+        return citations_text + search_results_text
+
+    def _find_content(self, response, key):
+        content = None
+
+        for choice in self.get_item(response, "choices", []):
+            if self.get_item(choice, key + ".role") != "assistant":
+                continue
+
+            content = self.get_item(choice, key + ".content")
+
+            if content is not None:
+                break
+
+        return content
+
+    @staticmethod
+    def _extract_response_parts(content, reasoning_started=False, text_started=False):
+        if content is None:
+            return "", "", reasoning_started, text_started
+
+        parts = ["", ""]
+        part_idx = 0 if reasoning_started and not text_started else 1
+
+        for line in content.splitlines(keepends=True):
+            line_stripped = line.strip()
+
+            if (not (reasoning_started or text_started)) and line_stripped == "":
+                continue
+
+            if (not text_started) and line_stripped == "<think>":
+                part_idx = 0
+                reasoning_started = True
+
+            parts[part_idx] += line
+            text_started = text_started or (part_idx == 1)
+
+            if (not text_started) and line_stripped == "</think>":
+                part_idx = 1
+                text_started = True
+
+        return parts[0], parts[1], reasoning_started, text_started
+
+
 def collect_api_keys() -> typing.Dict[str, str]:
     api_keys = read_api_keys_file()
 
@@ -940,6 +1147,7 @@ Expected format (omit the keys you don't use):
     "deepseek": "DeepSeek R1 API key here (https://platform.deepseek.com/api_keys)",
     "google": "Google Gemini API key here (https://aistudio.google.com/apikey)",
     "openai": "OpenAI ChatGPT API key here (https://platform.openai.com/settings/organization/api-keys)",
+    "perplexity": "Perplexity API key here (https://www.perplexity.ai/account/api/keys)"
 }
 """,
         )
