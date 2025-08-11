@@ -574,7 +574,7 @@ class DeepSeekClient(AiClient):
             stream=True,
         )
 
-        for event_type, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
+        for _, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
             try:
                 data = json.loads(data_bytes)
 
@@ -678,7 +678,7 @@ class GoogleClient(AiClient):
         url = self.URL_TPL_CHAT_STREAM.format(model=model, api_key= self._api_key)
         body = self._build_request_body(conversation, temperature, reasoning)
 
-        for event_type, data in self.http_sse("POST", url, self.HEADERS, body):
+        for _, data in self.http_sse("POST", url, self.HEADERS, body):
             yield from self._process_response(data, is_delta=True)
 
     def _build_request_body(self, conversation, temperature, reasoning):
