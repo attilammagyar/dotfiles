@@ -557,6 +557,8 @@ class DeepSeekClient(AiClient):
 
                 yield AiResponse(is_delta=False, is_reasoning=False, text=text)
 
+                break
+
     def respond_streaming(
             self,
             model: str,
@@ -590,6 +592,8 @@ class DeepSeekClient(AiClient):
 
                     if text is not None:
                         yield AiResponse(is_delta=True, is_reasoning=False, text=text)
+
+                    break
 
     def _build_request_headers(self):
         return {
