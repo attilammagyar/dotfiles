@@ -1429,17 +1429,26 @@ Available models:
             Message(type=MessageType.SYSTEM, text=self._system_prompt),
         ]
         self._save_settings_in_history()
+        self._messages.append(Message(type=MessageType.USER, text=""))
 
     def _save_settings_in_history(self):
-        if (
-                len(self._messages) < 1
-                or self._messages[-1].type != MessageType.SETTINGS
-        ):
-            self._messages.append(
-                Message(type=MessageType.SETTINGS, text="")
-            )
+        settings_idx = -1
 
-        self._messages[-1].text = (
+        if (
+                len(self._messages) >= 2
+                and self._messages[-2].type == MessageType.SETTINGS
+                and self._messages[-1].type == MessageType.USER
+                and self._messages[-1].text.strip() == ""
+        ):
+            settings_idx = -2
+
+        elif (
+                len(self._messages) < 1
+                or self._messages[settings_idx].type != MessageType.SETTINGS
+        ):
+            self._messages.append(Message(type=MessageType.SETTINGS, text=""))
+
+        self._messages[settings_idx].text = (
             self.get_model_info() + "\n"
             + self.get_reasoning_info() + "\n"
             + self.get_streaming_info() + "\n"
@@ -2224,6 +2233,11 @@ Reasoning: default
 Streaming: on
 Temperature: {AiMessenger.DEFAULT_TEMPERATURE}
 
+
+
+# === User ===
+
+
 """
         self.assertEqual(expected_conversation, ai_messenger.conversation_to_str())
 
@@ -2249,6 +2263,11 @@ Model: fake/model2
 Reasoning: on
 Streaming: off
 Temperature: 2.0
+
+
+
+# === User ===
+
 
 """
         self.assertEqual(expected_conversation, ai_messenger.conversation_to_str())
@@ -2513,6 +2532,11 @@ Reasoning: off
 Streaming: off
 Temperature: 2.0
 
+
+
+# === User ===
+
+
 """
         self.assertEqual(expected_conversation, ai_messenger.conversation_to_str())
 
@@ -2561,6 +2585,11 @@ Model: fake/model2
 Reasoning: off
 Streaming: off
 Temperature: 2.0
+
+
+
+# === User ===
+
 
 """
         self.assertEqual([], response_chunks)
