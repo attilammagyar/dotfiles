@@ -14,6 +14,7 @@ import datetime
 import enum
 import http.client
 import json
+import math
 import os
 import os.path
 import re
@@ -1521,7 +1522,7 @@ Available models:
         self._save_settings_in_history()
 
     def set_temperature(self, temperature: float):
-        if temperature < 0.0 or temperature > 2.0:
+        if temperature < 0.0 or temperature > 2.0 or not math.isfinite(temperature):
             raise ValueError(
                 f"Temperature must be a number between 0.0 and 2.0, got {temperature!r}."
             )
@@ -2162,6 +2163,7 @@ And what is The Answer?"""
         temperature_info_2 = ai_messenger.get_temperature_info()
 
         self.assertRaises(ValueError, ai_messenger.set_temperature, 999.0)
+        self.assertRaises(ValueError, ai_messenger.set_temperature, float("nan"))
         self.assertEqual("Temperature: 2.0", temperature_info_1)
         self.assertEqual("Temperature: 0.0", temperature_info_2)
 
