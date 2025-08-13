@@ -1533,7 +1533,7 @@ Available models:
                 f"Temperature must be a number between 0.0 and 2.0, got {temperature!r}."
             )
 
-        self._temperature = temperature
+        self._temperature = float(temperature)
 
         self._save_settings_in_history()
 
