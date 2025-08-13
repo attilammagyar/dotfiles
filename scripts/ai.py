@@ -1465,7 +1465,7 @@ Available models:
         return f"Model: {self._provider}/{self._model}"
 
     def get_reasoning_info(self) -> str:
-        return f"Reasoning: {self._reasoning}"
+        return "Reasoning: " + self._reasoning.value
 
     def get_streaming_info(self) -> str:
         return "Streaming: " + self._streaming.value
@@ -1496,17 +1496,19 @@ Available models:
     def set_reasoning(self, reasoning: str):
         reasoning_lower = reasoning.lower()
 
-        if reasoning_lower == "default":
+        if reasoning_lower == Reasoning.DEFAULT.value:
             self._reasoning = Reasoning.DEFAULT
 
-        elif reasoning_lower == "off":
+        elif reasoning_lower == Reasoning.OFF.value:
             self._reasoning = Reasoning.OFF
 
-        elif reasoning_lower == "on":
+        elif reasoning_lower == Reasoning.ON.value:
             self._reasoning = Reasoning.ON
 
         else:
-            raise ValueError(f"Reasoning must be either default, off, or on; got {reasoning!r}")
+            raise ValueError(
+                f"Reasoning must be either {Reasoning.DEFAULT.value}, {Reasoning.ON.value}, or {Reasoning.OFF.value}; got {reasoning!r}"
+            )
 
         self._save_settings_in_history()
 
@@ -2251,7 +2253,7 @@ Temperature: {AiMessenger.DEFAULT_TEMPERATURE}
         ai_messenger = self.create_messenger()[0]
 
         ai_messenger.set_model("fake/model2")
-        ai_messenger.set_reasoning(Reasoning.ON)
+        ai_messenger.set_reasoning(Reasoning.ON.value)
         ai_messenger.set_streaming(Streaming.OFF.value)
         ai_messenger.set_temperature(2.0)
 
@@ -2433,7 +2435,7 @@ What is The Answer?
             ],
         )
         ai_messenger.set_model("fake/model2")
-        ai_messenger.set_reasoning(Reasoning.OFF)
+        ai_messenger.set_reasoning(Reasoning.OFF.value)
         ai_messenger.set_streaming(Streaming.OFF.value)
         ai_messenger.set_temperature(2.0)
         ai_messenger.clear()
@@ -2518,7 +2520,7 @@ What is The Answer?
                 ],
             ],
         )[0]
-        ai_messenger.set_reasoning(Reasoning.OFF)
+        ai_messenger.set_reasoning(Reasoning.OFF.value)
         ai_messenger.set_streaming(Streaming.OFF.value)
 
         ai_messenger.clear()
@@ -2566,7 +2568,7 @@ Custom system prompt.
         )
         ai_messenger.set_model("fake/model2")
         ai_messenger.set_temperature(2.0)
-        ai_messenger.set_reasoning(Reasoning.OFF)
+        ai_messenger.set_reasoning(Reasoning.OFF.value)
         ai_messenger.set_streaming(Streaming.OFF.value)
         ai_messenger.clear()
 
@@ -2814,7 +2816,7 @@ The answer is 42.
         ai_messenger.set_model("fake/model1")
         conv_1 = ai_messenger.conversation_to_str()
 
-        ai_messenger.set_reasoning(Reasoning.OFF)
+        ai_messenger.set_reasoning(Reasoning.OFF.value)
         conv_2 = ai_messenger.conversation_to_str()
 
         ai_messenger.set_streaming(Streaming.OFF.value)
