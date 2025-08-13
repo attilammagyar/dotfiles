@@ -821,6 +821,8 @@ class GoogleClient(AiClient):
                             text=text,
                         )
 
+                break
+
 
 class OpenAiClient(AiClient):
     # https://platform.openai.com/docs/guides/text?api-mode=responses
