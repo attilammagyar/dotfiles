@@ -165,6 +165,11 @@ class Reasoning(str, enum.Enum):
     ON = "on"
 
 
+class Streaming(str, enum.Enum):
+    OFF = "off"
+    ON = "on"
+
+
 class MessageType(str, enum.Enum):
     SYSTEM = "system"
     SETTINGS = "settings"
@@ -1386,7 +1391,7 @@ Available models:
         self._model = ""
         self._temperature = self.DEFAULT_TEMPERATURE
         self._reasoning = Reasoning.DEFAULT
-        self._streaming = False
+        self._streaming = Streaming.OFF
 
         self._system_prompt = self.DEFAULT_SYSTEM_PROMPT
         self._messages = []
@@ -1463,7 +1468,7 @@ Available models:
         return f"Reasoning: {self._reasoning}"
 
     def get_streaming_info(self) -> str:
-        return "Streaming: " + ("on" if self._streaming else "off")
+        return "Streaming: " + self._streaming.value
 
     def get_temperature_info(self) -> str:
         return f"Temperature: {self._temperature}"
@@ -1505,20 +1510,19 @@ Available models:
 
         self._save_settings_in_history()
 
-    def set_streaming(self, streaming: typing.Union[bool, str]):
-        if isinstance(streaming, str):
-            streaming_lower = streaming.lower()
 
-            if streaming_lower == "on":
-                streaming = True
+    def set_streaming(self, streaming: str):
+        streaming_lower = streaming.lower()
 
-            elif streaming_lower == "off":
-                streaming = False
+        if streaming_lower == Streaming.ON.value:
+            self._streaming = Streaming.ON
 
-            else:
-                raise ValueError(f"Streaming must be either on or off, got {streaming!r}")
+        elif streaming_lower == Streaming.OFF.value:
+            self._streaming = Streaming.OFF
 
-        self._streaming = streaming
+        else:
+            raise ValueError(f"Streaming must be either {Streaming.ON.value} or {Streaming.OFF.value}, got {streaming!r}")
+
         self._save_settings_in_history()
 
     def set_temperature(self, temperature: float):
@@ -1733,7 +1737,7 @@ Available models:
             if msg.type in self.RELEVANT_MESSAGE_TYPES
         ]
 
-        if self._streaming:
+        if self._streaming == Streaming.ON:
             texts = ai_client.respond_streaming(
                 self._model,
                 conversation,
@@ -2248,7 +2252,7 @@ Temperature: {AiMessenger.DEFAULT_TEMPERATURE}
 
         ai_messenger.set_model("fake/model2")
         ai_messenger.set_reasoning(Reasoning.ON)
-        ai_messenger.set_streaming(False)
+        ai_messenger.set_streaming(Streaming.OFF.value)
         ai_messenger.set_temperature(2.0)
 
         expected_conversation = f"""\
@@ -2430,7 +2434,7 @@ What is The Answer?
         )
         ai_messenger.set_model("fake/model2")
         ai_messenger.set_reasoning(Reasoning.OFF)
-        ai_messenger.set_streaming(False)
+        ai_messenger.set_streaming(Streaming.OFF.value)
         ai_messenger.set_temperature(2.0)
         ai_messenger.clear()
 
@@ -2515,7 +2519,7 @@ What is The Answer?
             ],
         )[0]
         ai_messenger.set_reasoning(Reasoning.OFF)
-        ai_messenger.set_streaming(False)
+        ai_messenger.set_streaming(Streaming.OFF.value)
 
         ai_messenger.clear()
 
@@ -2563,7 +2567,7 @@ Custom system prompt.
         ai_messenger.set_model("fake/model2")
         ai_messenger.set_temperature(2.0)
         ai_messenger.set_reasoning(Reasoning.OFF)
-        ai_messenger.set_streaming(False)
+        ai_messenger.set_streaming(Streaming.OFF.value)
         ai_messenger.clear()
 
         response_chunks = list(
@@ -2813,7 +2817,7 @@ The answer is 42.
         ai_messenger.set_reasoning(Reasoning.OFF)
         conv_2 = ai_messenger.conversation_to_str()
 
-        ai_messenger.set_streaming(False)
+        ai_messenger.set_streaming(Streaming.OFF.value)
         conv_3 = ai_messenger.conversation_to_str()
 
         ai_messenger.set_temperature(0.0)
