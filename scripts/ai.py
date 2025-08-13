@@ -2298,13 +2298,7 @@ And what is The Answer?"""
         self.assertEqual("Temperature: 0.0", temperature_info_2)
 
     def test_unknown_blocks_raise_error(self):
-        ai_messenger = self.create_messenger(
-            [
-                [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
-                ],
-            ],
-        )[0]
+        ai_messenger = self.create_messenger()[0]
 
         edited_conversation = """\
 # === Usre ===
@@ -2321,13 +2315,7 @@ What is The Answer?
         )
 
     def test_unknown_settings_raise_error(self):
-        ai_messenger = self.create_messenger(
-            [
-                [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
-                ],
-            ],
-        )[0]
+        ai_messenger = self.create_messenger()[0]
 
         edited_conversation = """\
 # === Settings ===
@@ -2683,13 +2671,7 @@ Custom system prompt.
 
 42.
 """
-        ai_messenger, ai_client = self.create_messenger(
-            [
-                [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
-                ],
-            ],
-        )
+        ai_messenger, ai_client = self.create_messenger()
         ai_messenger.set_model("fake/model2")
         ai_messenger.set_temperature(2.0)
         ai_messenger.set_reasoning(Reasoning.OFF.value)
@@ -2795,7 +2777,7 @@ What is The Answer?
         )
         self.assertEqual(2.0, ai_client.temperature)
 
-    def test_ai_thoughts_and_response_can_be_streamed_and_appended_to_the_conversation(self):
+    def test_ai_reasoning_and_response_can_be_streamed_and_appended_to_the_conversation(self):
         ai_messenger, ai_client, response_chunks = self.ask(
             self.LONG_CONVERSATION,
             [
@@ -2859,7 +2841,7 @@ What is The Answer?
         self.assertEqual(Reasoning.ON, ai_client.reasoning)
         self.assertEqual(True, ai_client.streaming)
 
-    def test_when_the_ai_provides_complete_thoughts_and_response_after_a_stream_then_they_are_appended_to_the_conversation(self):
+    def test_when_the_ai_provides_complete_reasoning_and_response_after_a_stream_then_they_are_appended_to_the_conversation(self):
         ai_messenger, ai_client, response_chunks = self.ask(
             self.LONG_CONVERSATION,
             [
