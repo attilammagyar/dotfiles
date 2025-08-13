@@ -2067,6 +2067,7 @@ class AiCmd(cmd.Cmd):
             print("")
 
         except ValueError as value_err:
+            print("")
             self._print_error(value_err)
 
         except HttpError as http_err:
@@ -2074,6 +2075,10 @@ class AiCmd(cmd.Cmd):
             print(f"HTTP ERROR: {http_err.status} ({http_err.reason})")
             print("")
             print(f"{http_err.body}")
+
+        except Exception as exc:
+            print("")
+            self._print_error(f"{type(exc)}: {exc}")
 
     def _edit_conversation(self, conversation: str) -> typing.Optional[str]:
         if self._edit_conv_filename is None:
