@@ -1386,7 +1386,7 @@ Available models:
         self._model = ""
         self._temperature = self.DEFAULT_TEMPERATURE
         self._reasoning = Reasoning.DEFAULT
-        self._streaming = True
+        self._streaming = False
 
         self._system_prompt = self.DEFAULT_SYSTEM_PROMPT
         self._messages = []
@@ -2232,7 +2232,7 @@ What is The Answer?
 
 Model: fake/model1
 Reasoning: default
-Streaming: on
+Streaming: off
 Temperature: {AiMessenger.DEFAULT_TEMPERATURE}
 
 
