@@ -28,9 +28,7 @@ import unittest
 import urllib.parse
 
 
-API_KEYS_FILE_NAME = os.path.expanduser(os.path.join("~", ".llm-api-keys"))
-
-MODELS_CACHE_FILE_NAME = os.path.expanduser(os.path.join("~", ".llm-models"))
+STATE_FILE_NAME = os.path.expanduser(os.path.join("~", ".ai-py"))
 
 MODELS_CACHE_TTL_SECONDS = 3 * 24 * 60 * 60
 
@@ -97,7 +95,14 @@ def main(argv):
         return 0
 
     editor = os.getenv("EDITOR", "vi")
-    api_keys = collect_api_keys()
+
+    state = load_state()
+
+    if state is None:
+        return 1
+
+    state_file_api_keys, models, models_cache_updated, settings = state
+    api_keys = collect_api_keys(state_file_api_keys)
 
     ai_client_cls = {
         "anthropic": AnthropicClient,
@@ -113,8 +118,20 @@ def main(argv):
         if name in ai_client_cls
     }
 
-    models = list_models(ai_clients)
-    messenger = AiMessenger(ai_clients, models)
+    models, models_cache_updated = ensure_up_to_date_models(
+        ai_clients,
+        models,
+        models_cache_updated
+    )
+
+    models_list = []
+
+    for provider, provider_models in models.items():
+        models_list.extend([f"{provider}/{model}" for model in provider_models])
+
+    messenger = AiMessenger(ai_clients, models_list)
+
+    apply_settings(messenger, settings)
 
     if parsed_argv.command == "interactive":
         init_question = " ".join(parsed_argv.question).strip()
@@ -139,6 +156,19 @@ def main(argv):
 
         print(messenger.conversation_to_str())
 
+    settings = {
+        "model": messenger.get_model(),
+        "reasoning": messenger.get_reasoning(),
+        "streaming": messenger.get_streaming(),
+        "temperature": messenger.get_temperature(),
+    }
+
+    try:
+        save_state(state_file_api_keys, models, models_cache_updated, settings)
+
+    except Exception as exc:
+        error(f"Unable to save state in {STATE_FILE_NAME}: {type(exc)}: {exc}")
+
     return 0
 
 
@@ -148,6 +178,43 @@ def info(message: str, end=os.linesep):
 
 def error(message: str):
     info(message)
+
+
+def get_item(
+        container: typing.Any,
+        path: str,
+        default=None,
+        expect_type=None
+) -> typing.Any:
+    """
+    Extract data from nested dicts and lists based on a dot-separated
+    path string. See TestGetItem for examples.
+    """
+
+    if path == "." or path == "":
+        return container
+
+    path = path.split(".")
+
+    for key in path:
+        if isinstance(container, collections.abc.Mapping):
+            if key in container:
+                container = container[key]
+            else:
+                return default
+        elif isinstance(container, collections.abc.Sequence):
+            if int(key) < len(container):
+                container = container[int(key)]
+            else:
+                return default
+        else:
+            return default
+
+    if expect_type is not None:
+        if not isinstance(container, expect_type):
+            return default
+
+    return container
 
 
 class HttpError(Exception):
@@ -298,34 +365,6 @@ class AiClient:
 
         return response
 
-    @staticmethod
-    def get_item(container: typing.Any, path: str, default=None) -> typing.Any:
-        """
-        Extract data from nested dicts and lists based on a dot-separated
-        path string. See test_get_item() for examples.
-        """
-
-        if path == "." or path == "":
-            return container
-
-        path = path.split(".")
-
-        for key in path:
-            if isinstance(container, collections.abc.Mapping):
-                if key in container:
-                    container = container[key]
-                else:
-                    return default
-            elif isinstance(container, collections.abc.Sequence):
-                if int(key) < len(container):
-                    container = container[int(key)]
-                else:
-                    return default
-            else:
-                return default
-
-        return container
-
 
 class AnthropicClient(AiClient):
     # https://docs.anthropic.com/en/api/messages
@@ -349,7 +388,7 @@ class AnthropicClient(AiClient):
 
         return [
             model["id"]
-            for model in self.get_item(response, "data", [])
+            for model in get_item(response, "data", [])
             if model["type"] == "model"
         ]
 
@@ -376,21 +415,21 @@ class AnthropicClient(AiClient):
             pass
 
         else:
-            for content in self.get_item(response, "content", []):
-                content_type = self.get_item(content, "type")
+            for content in get_item(response, "content", []):
+                content_type = get_item(content, "type")
 
                 if content_type == "text":
                     yield AiResponse(
                         is_delta=False,
                         is_reasoning=False,
-                        text=self.get_item(content, "text", "")
+                        text=get_item(content, "text", "")
                     )
 
                 elif content_type == "thinking":
                     yield AiResponse(
                         is_delta=False,
                         is_reasoning=True,
-                        text=self.get_item(content, "thinking", ""),
+                        text=get_item(content, "thinking", ""),
                     )
 
     def respond_streaming(
@@ -416,37 +455,37 @@ class AnthropicClient(AiClient):
                 continue
 
             if event_type == "content_block_start":
-                content_type = self.get_item(data, "content_block.type")
+                content_type = get_item(data, "content_block.type")
 
                 if content_type == "thinking":
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=True,
-                        text=self.get_item(data, "content_block.thinking", ""),
+                        text=get_item(data, "content_block.thinking", ""),
                     )
 
                 elif content_type == "text":
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=False,
-                        text=self.get_item(data, "content_block.text", ""),
+                        text=get_item(data, "content_block.text", ""),
                     )
 
             elif event_type == "content_block_delta":
-                delta_type = self.get_item(data, "delta.type")
+                delta_type = get_item(data, "delta.type")
 
                 if delta_type == "thinking_delta":
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=True,
-                        text=self.get_item(data, "delta.thinking", ""),
+                        text=get_item(data, "delta.thinking", ""),
                     )
 
                 elif delta_type == "text_delta":
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=False,
-                        text=self.get_item(data, "delta.text", ""),
+                        text=get_item(data, "delta.text", ""),
                     )
 
     def _build_request(self, model, conversation, temperature, reasoning, stream):
@@ -542,7 +581,7 @@ class DeepSeekClient(AiClient):
 
         return [
             model["id"]
-            for model in self.get_item(response, "data", [])
+            for model in get_item(response, "data", [])
             if model["object"] == "model"
         ]
 
@@ -569,12 +608,12 @@ class DeepSeekClient(AiClient):
             pass
 
         else:
-            for choice in self.get_item(response, "choices", []):
-                if self.get_item(choice, "message.role") != "assistant":
+            for choice in get_item(response, "choices", []):
+                if get_item(choice, "message.role") != "assistant":
                     continue
 
-                reasoning = self.get_item(choice, "message.reasoning_content")
-                text = self.get_item(choice, "message.content", "")
+                reasoning = get_item(choice, "message.reasoning_content")
+                text = get_item(choice, "message.content", "")
 
                 if reasoning is not None:
                     yield AiResponse(is_delta=False, is_reasoning=True, text=reasoning)
@@ -605,14 +644,14 @@ class DeepSeekClient(AiClient):
             except json.JSONDecodeError:
                 continue
 
-            if self.get_item(data, "object") == "chat.completion.chunk":
-                for choice in self.get_item(data, "choices", []):
-                    reasoning = self.get_item(choice, "delta.reasoning_content")
+            if get_item(data, "object") == "chat.completion.chunk":
+                for choice in get_item(data, "choices", []):
+                    reasoning = get_item(choice, "delta.reasoning_content")
 
                     if reasoning is not None:
                         yield AiResponse(is_delta=True, is_reasoning=True, text=reasoning)
 
-                    text = self.get_item(choice, "delta.content")
+                    text = get_item(choice, "delta.content")
 
                     if text is not None:
                         yield AiResponse(is_delta=True, is_reasoning=False, text=text)
@@ -675,7 +714,7 @@ class GoogleClient(AiClient):
 
         return [
             model["name"].split("/", 1)[-1] if model["name"].startswith("models/") else model["name"]
-            for model in self.get_item(response, "models", [])
+            for model in get_item(response, "models", [])
             if "generateContent" in model["supportedGenerationMethods"]
         ]
 
@@ -768,17 +807,17 @@ class GoogleClient(AiClient):
             pass
 
         else:
-            for candidate in self.get_item(response, "candidates", []):
-                if self.get_item(candidate, "content.role") != "model":
+            for candidate in get_item(response, "candidates", []):
+                if get_item(candidate, "content.role") != "model":
                     continue
 
-                for part in self.get_item(candidate, "content.parts", []):
-                    text = self.get_item(part, "text")
+                for part in get_item(candidate, "content.parts", []):
+                    text = get_item(part, "text")
 
                     if text is not None:
                         yield AiResponse(
                             is_delta=True,
-                            is_reasoning=self.get_item(part, "thought", False),
+                            is_reasoning=get_item(part, "thought", False),
                             text=text,
                         )
 
@@ -800,7 +839,7 @@ class OpenAiClient(AiClient):
 
         return [
             model["id"]
-            for model in self.get_item(response, "data", [])
+            for model in get_item(response, "data", [])
             if model["object"] == "model" and model["owned_by"] != "openai-internal"
         ]
 
@@ -840,7 +879,7 @@ class OpenAiClient(AiClient):
         for event_type, data in self.http_sse("POST", self.URL_CHAT, headers, body):
             if event_type == "response.output_text.delta":
                 try:
-                    text = self.get_item(json.loads(data), "delta", "")
+                    text = get_item(json.loads(data), "delta", "")
 
                 except json.JSONDecodeError:
                     pass
@@ -901,15 +940,15 @@ class OpenAiClient(AiClient):
             pass
 
         else:
-            for output in self.get_item(response, path, []):
-                if self.get_item(output, "type") != "message":
+            for output in get_item(response, path, []):
+                if get_item(output, "type") != "message":
                     continue
 
-                for content in self.get_item(output, "content", []):
-                    if self.get_item(content, "type") != "output_text":
+                for content in get_item(output, "content", []):
+                    if get_item(content, "type") != "output_text":
                         continue
 
-                    text = self.get_item(content, "text", "")
+                    text = get_item(content, "text", "")
 
                     yield AiResponse(is_delta=False, is_reasoning=False, text=text)
 
@@ -951,8 +990,8 @@ class PerplexityClient(AiClient):
         else:
             content = self._find_content(response, "message")
             citations = self._format_citations(
-                self.get_item(response, "citations", []),
-                self.get_item(response, "search_results", []),
+                get_item(response, "citations", []),
+                get_item(response, "search_results", []),
             )
             reasoning, text = self._extract_response_parts(content)[:2]
 
@@ -988,13 +1027,13 @@ class PerplexityClient(AiClient):
             except json.JSONDecodeError:
                 continue
 
-            if self.get_item(data, "object") != "chat.completion":
+            if get_item(data, "object") != "chat.completion":
                 continue
 
             if citations is None:
                 citations = self._format_citations(
-                    self.get_item(data, "citations", []),
-                    self.get_item(data, "search_results", []),
+                    get_item(data, "citations", []),
+                    get_item(data, "search_results", []),
                 )
 
             content = self._find_content(data, "delta")
@@ -1077,11 +1116,11 @@ class PerplexityClient(AiClient):
     def _find_content(self, response, key):
         content = None
 
-        for choice in self.get_item(response, "choices", []):
-            if self.get_item(choice, key + ".role") != "assistant":
+        for choice in get_item(response, "choices", []):
+            if get_item(choice, key + ".role") != "assistant":
                 continue
 
-            content = self.get_item(choice, key + ".content")
+            content = get_item(choice, key + ".content")
 
             if content is not None:
                 break
@@ -1116,121 +1155,149 @@ class PerplexityClient(AiClient):
         return parts[0], parts[1], reasoning_started, text_started
 
 
-def collect_api_keys() -> typing.Dict[str, str]:
-    api_keys = read_api_keys_file()
-
-    for api_name, env_var_name in ENV_VAR_NAMES.items():
-        api_key = os.getenv(env_var_name)
-
-        if api_key is not None:
-            info(f"Using {env_var_name} for {api_name}.")
-            api_keys[api_name] = api_key
-
-    return api_keys
-
-
-def read_api_keys_file() -> typing.Dict[str, str]:
-    if not os.path.isfile(API_KEYS_FILE_NAME):
-        error(f"{API_KEYS_FILE_NAME} not found.")
-
-        return {}
-
-    info(f"Loading keys from {API_KEYS_FILE_NAME}...")
-
-    api_keys = {}
+def load_state():
+    info(f"Loading {STATE_FILE_NAME}...")
 
     try:
-        with open(API_KEYS_FILE_NAME, "r") as f:
-            api_keys_file = json.load(f)
+        with open(STATE_FILE_NAME, "r") as f:
+            state = json.load(f)
 
-        if not isinstance(api_keys_file, collections.abc.Mapping):
-            raise TypeError(f"Expected a dict, got {type(api_keys_file)}")
+        api_keys = get_item(state, "api_keys")
 
-        for api_name in ENV_VAR_NAMES.keys():
-            api_key = api_keys_file.get(api_name)
+        if not isinstance(api_keys, collections.abc.Mapping):
+            raise TypeError(f"api_keys must be a mapping")
 
-            if api_key is not None:
-                if not isinstance(api_key, str):
-                    raise TypeError(f"Expected str, got {type(api_key)} for {api_name!r}")
+        for key, value in api_keys.items():
+            if not (isinstance(key, str) and isinstance(value, str)):
+                raise TypeError(f"Unexpected API key format, expected string for {key!r}")
 
-                api_keys[api_name] = api_key
+        supported_providers = set(ENV_VAR_NAMES.keys())
+        configured_providers = set(api_keys.keys())
+        unknown_providers = configured_providers.difference(supported_providers)
 
-    except Exception as error:
-        error(f"ERROR reading {API_KEYS_FILE_NAME}: {type(error)}: {error}")
+        if len(unknown_providers) > 0:
+            raise ValueError(f"Unkown AI providers: {sorted(unknown_providers)}")
+
+    except Exception as exc:
+        error(f"Unable to read API keys from {STATE_FILE_NAME}: {type(exc)}: {exc}")
         error("")
         error("""\
-Expected format (omit the keys you don't use):
+Expected format (omit the API keys that you don't use):
 
 {
+  "api_keys": {
     "anthropic": "Anthropic Claude API key here (https://console.anthropic.com/settings/keys)",
     "deepseek": "DeepSeek R1 API key here (https://platform.deepseek.com/api_keys)",
     "google": "Google Gemini API key here (https://aistudio.google.com/apikey)",
     "openai": "OpenAI ChatGPT API key here (https://platform.openai.com/settings/organization/api-keys)",
     "perplexity": "Perplexity API key here (https://www.perplexity.ai/account/api/keys)"
+  }
 }
 """,
         )
 
+        return None
+
+    models_cache_updated = int(
+        get_item(state, "models_updated", default=-1, expect_type=(int, float))
+    )
+    models = get_item(state, "models", default={}, expect_type=dict)
+
+    if (
+            not all(
+                (
+                    isinstance(provider, str)
+                    and isinstance(provider_models, list)
+                    and len(provider_models) > 0
+                    and all(isinstance(model, str) for model in provider_models)
+                )
+                for provider, provider_models in models.items()
+            )
+    ):
+        models = {}
+
+    if models_cache_updated is None or len(models) == 0:
+        models = None
+        models_cache_updated = None
+
+    settings = get_item(state, "settings", default={}, expect_type=dict)
+    settings = {
+        "model": get_item(settings, "model", default="", expect_type=str),
+        "reasoning": get_item(settings, "reasoning", default=Reasoning.DEFAULT.value, expect_type=str),
+        "streaming": get_item(settings, "streaming", default=Streaming.OFF.value, expect_type=str),
+        "temperature": float(get_item(settings, "temperature", default=1.0, expect_type=(int, float))),
+    }
+
+    return api_keys, models, models_cache_updated, settings
+
+
+def save_state(
+        state_file_api_keys: typing.Dict[str, str],
+        models: typing.Dict[str, typing.List[str]],
+        models_cache_updated: int,
+        settings: typing.Dict[str, typing.Any],
+):
+    info(f"Saving state into {STATE_FILE_NAME}...")
+
+    state = {
+        "api_keys": state_file_api_keys,
+        "settings": settings,
+        "models_updated": models_cache_updated,
+        "models": models,
+    }
+
+    new_state_file = tempfile.NamedTemporaryFile(
+        prefix="_ai-py",
+        dir=os.path.dirname(STATE_FILE_NAME),
+        mode="w+",
+        delete=False,
+    )
+
+    with new_state_file:
+        json.dump(state, new_state_file, indent=2)
+
+    os.rename(new_state_file.name, STATE_FILE_NAME)
+
+
+def collect_api_keys(
+        state_file_api_keys: typing.Dict[str, str],
+) -> typing.Dict[str, str]:
+    api_keys = dict(state_file_api_keys)
+
+    for provider, env_var_name in ENV_VAR_NAMES.items():
+        api_key = os.getenv(env_var_name)
+
+        if api_key is not None:
+            info(f"Using {env_var_name} for {provider}.")
+            api_keys[provider] = api_key
+
     return api_keys
 
 
-def list_models(
+def ensure_up_to_date_models(
         ai_clients: typing.Dict[str, AiClient],
+        models: typing.Optional[typing.Dict[str, typing.List[str]]],
+        models_cache_updated: typing.Optional[float],
 ) -> collections.abc.Sequence[str]:
-    cache = read_models_cache(ai_clients)
+    now = int(time.time())
 
-    if cache is None:
-        info(f"Querying models, updating {MODELS_CACHE_FILE_NAME}...")
+    if (
+            models_cache_updated is None
+            or models is None
+            or abs(now - models_cache_updated) > MODELS_CACHE_TTL_SECONDS
+            or set(ai_clients.keys()) != set(models.keys())
+    ):
+        info(f"Querying models...")
 
-        cache = {}
+        models_cache_updated = now
+        models = {}
 
         for provider, ai_client in ai_clients.items():
             info(f" * {provider}...")
 
-            cache[provider] = ai_client.list_models()
+            models[provider] = sorted(ai_client.list_models())
 
-        with open(MODELS_CACHE_FILE_NAME, "w") as f:
-            json.dump(cache, f, indent=2)
-
-    models = []
-
-    for provider, ai_client in ai_clients.items():
-        models.extend([f"{provider}/{model}" for model in cache[provider]])
-
-    return models
-
-
-def read_models_cache(
-        ai_clients: typing.Dict[str, AiClient]
-) -> typing.Optional[typing.Dict[str, collections.abc.Sequence[str]]]:
-    try:
-        now = time.time()
-        cache_modified = os.path.getmtime(MODELS_CACHE_FILE_NAME)
-        cache_is_up_to_date = cache_modified > now - MODELS_CACHE_TTL_SECONDS
-
-    except:
-        cache_is_up_to_date = False
-
-    cache = None
-
-    if cache_is_up_to_date:
-        with open(MODELS_CACHE_FILE_NAME, "r") as f:
-            raw_cache = json.load(f)
-
-        if isinstance(raw_cache, dict):
-            cache = {}
-
-            for provider, ai_client in ai_clients.items():
-                provider_models = AiClient.get_item(raw_cache, provider, [])
-
-                if isinstance(provider_models, list) and len(provider_models) > 0:
-                    cache[provider] = provider_models
-                else:
-                    cache = None
-
-                    break
-
-    return cache
+    return models, models_cache_updated
 
 
 class StatusStr(str):
@@ -1493,6 +1560,9 @@ Available models:
 
         self._save_settings_in_history()
 
+    def get_model(self) -> str:
+        return f"{self._provider}/{self._model}"
+
     def set_reasoning(self, reasoning: str):
         reasoning_lower = reasoning.lower()
 
@@ -1512,6 +1582,8 @@ Available models:
 
         self._save_settings_in_history()
 
+    def get_reasoning(self) -> str:
+        return self._reasoning.value
 
     def set_streaming(self, streaming: str):
         streaming_lower = streaming.lower()
@@ -1527,6 +1599,9 @@ Available models:
 
         self._save_settings_in_history()
 
+    def get_streaming(self) -> str:
+        return self._streaming.value
+
     def set_temperature(self, temperature: float):
         if temperature < 0.0 or temperature > 2.0 or not math.isfinite(temperature):
             raise ValueError(
@@ -1536,6 +1611,9 @@ Available models:
         self._temperature = float(temperature)
 
         self._save_settings_in_history()
+
+    def get_temperature(self) -> float:
+        return self._temperature
 
     def conversation_to_str(self) -> str:
         block_types = {
@@ -1823,6 +1901,24 @@ Available models:
         yield "\n"
 
 
+def apply_settings(messenger: AiMessenger, settings: typing.Dict[str, typing.Any]):
+    methods = {
+        "model": (messenger.set_model, messenger.get_model_info),
+        "reasoning": (messenger.set_reasoning, messenger.get_reasoning_info),
+        "streaming": (messenger.set_streaming, messenger.get_streaming_info),
+        "temperature": (messenger.set_temperature, messenger.get_temperature_info),
+    }
+
+    for key, (setter, info_getter) in methods.items():
+        try:
+            setter(settings[key])
+
+        except ValueError:
+            pass
+
+        info(info_getter())
+
+
 class AiCmd(cmd.Cmd):
     prompt = "AI> "
 
@@ -2029,12 +2125,22 @@ def run_tests(argv):
     unittest.main(argv=argv[:1])
 
 
-class TestAiClient(unittest.TestCase):
+class TestGetItem(unittest.TestCase):
     def test_get_item(self):
-        container = {"aaa": [{"bbb": "42", "ccc": "123"}]}
+        container = {"aaa": [{"bbb": "42", "ccc": 123}]}
 
-        self.assertEqual("42", AiClient.get_item(container, "aaa.0.bbb"))
-        self.assertIsNone(AiClient.get_item(container, "aaa.2.zzz"))
+        self.assertEqual("42", get_item(container, "aaa.0.bbb"))
+        self.assertEqual(123, get_item(container, "aaa.0.ccc", expect_type=int))
+        self.assertIsNone(get_item(container, "aaa.2.zzz"))
+        self.assertIsNone(get_item(container, "aaa.0.ccc", expect_type=str))
+        self.assertEqual(
+            "default",
+            get_item(container, "aaa.2.zzz", default="default"),
+        )
+        self.assertEqual(
+            "default",
+            get_item(container, "aaa.0.ccc", default="default", expect_type=str),
+        )
 
 
 class TestAiMessenger(unittest.TestCase):
@@ -2122,55 +2228,73 @@ And what is The Answer?"""
         ai_messenger = self.create_messenger()[0]
 
         ai_messenger.set_model("fake/model1")
+        model_1 = ai_messenger.get_model()
         model_info_1 = ai_messenger.get_model_info()
         ai_messenger.set_model("fake/model2")
+        model_2 = ai_messenger.get_model()
         model_info_2 = ai_messenger.get_model_info()
 
         self.assertRaises(ValueError, ai_messenger.set_model, "bake/model1")
         self.assertRaises(ValueError, ai_messenger.set_model, "fake/model99")
+        self.assertEqual("fake/model1", model_1)
         self.assertEqual("Model: fake/model1", model_info_1)
+        self.assertEqual("fake/model2", model_2)
         self.assertEqual("Model: fake/model2", model_info_2)
 
     def test_reasoning_setting_is_validated(self):
         ai_messenger = self.create_messenger()[0]
 
         ai_messenger.set_reasoning("Default")
+        reasoning_1 = ai_messenger.get_reasoning()
         reasoning_info_1 = ai_messenger.get_reasoning_info()
         ai_messenger.set_reasoning("on")
+        reasoning_2 = ai_messenger.get_reasoning()
         reasoning_info_2 = ai_messenger.get_reasoning_info()
         ai_messenger.set_reasoning("off")
+        reasoning_3 = ai_messenger.get_reasoning()
         reasoning_info_3 = ai_messenger.get_reasoning_info()
 
         self.assertRaises(ValueError, ai_messenger.set_reasoning, "no")
         self.assertRaises(ValueError, ai_messenger.set_reasoning, "yes")
+        self.assertEqual("default", reasoning_1)
         self.assertEqual("Reasoning: default", reasoning_info_1)
+        self.assertEqual("on", reasoning_2)
         self.assertEqual("Reasoning: on", reasoning_info_2)
+        self.assertEqual("off", reasoning_3)
         self.assertEqual("Reasoning: off", reasoning_info_3)
 
     def test_streaming_setting_is_validated(self):
         ai_messenger = self.create_messenger()[0]
 
         ai_messenger.set_streaming("On")
+        streaming_1 = ai_messenger.get_streaming()
         streaming_info_1 = ai_messenger.get_streaming_info()
         ai_messenger.set_streaming("off")
+        streaming_2 = ai_messenger.get_streaming()
         streaming_info_2 = ai_messenger.get_streaming_info()
 
         self.assertRaises(ValueError, ai_messenger.set_streaming, "no")
         self.assertRaises(ValueError, ai_messenger.set_streaming, "yes")
+        self.assertEqual("on", streaming_1)
         self.assertEqual("Streaming: on", streaming_info_1)
+        self.assertEqual("off", streaming_2)
         self.assertEqual("Streaming: off", streaming_info_2)
 
     def test_temperature_setting_is_validated(self):
         ai_messenger = self.create_messenger()[0]
 
         ai_messenger.set_temperature(2.0)
+        temperature_1 = ai_messenger.get_temperature()
         temperature_info_1 = ai_messenger.get_temperature_info()
         ai_messenger.set_temperature(0.0)
+        temperature_2 = ai_messenger.get_temperature()
         temperature_info_2 = ai_messenger.get_temperature_info()
 
         self.assertRaises(ValueError, ai_messenger.set_temperature, 999.0)
         self.assertRaises(ValueError, ai_messenger.set_temperature, float("nan"))
+        self.assertEqual(2.0, temperature_1)
         self.assertEqual("Temperature: 2.0", temperature_info_1)
+        self.assertEqual(0.0, temperature_2)
         self.assertEqual("Temperature: 0.0", temperature_info_2)
 
     def test_unknown_blocks_raise_error(self):
