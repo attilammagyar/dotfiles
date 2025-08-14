@@ -243,6 +243,7 @@ class MessageType(str, enum.Enum):
     USER = "user"
     AI = "ai"
     AI_REASONING = "ai_reasoning"
+    AI_STATUS = "ai_status"
 
 
 @dataclasses.dataclass
@@ -255,6 +256,7 @@ class Message:
 class AiResponse:
     is_delta: bool
     is_reasoning: bool
+    is_status: bool
     text: str
 
 
@@ -365,6 +367,28 @@ class AiClient:
 
         return response
 
+    @staticmethod
+    def extract_status(data, paths: typing.Iterator[str]) -> typing.Dict[str, typing.Any]:
+        status = {}
+
+        for path in paths:
+            value = get_item(data, path)
+
+            if value is not None and value != "":
+                status[path] = value
+
+        return status
+
+    @staticmethod
+    def compile_status(status: typing.Dict[str, typing.Any]) -> typing.Iterator[AiResponse]:
+        if len(status) > 0:
+            yield AiResponse(
+                is_delta=False,
+                is_reasoning=False,
+                is_status=True,
+                text="\n".join(f"{path}: {value}" for path, value in status.items()),
+            )
+
 
 class AnthropicClient(AiClient):
     # https://docs.anthropic.com/en/api/messages
@@ -372,6 +396,27 @@ class AnthropicClient(AiClient):
 
     URL_CHAT = "https://api.anthropic.com/v1/messages"
     URL_MODELS = "https://api.anthropic.com/v1/models?limit=1000"
+
+    STATUS_PATHS = (
+        "delta.stop_reason",
+        "id",
+        "message.id",
+        "message.model",
+        "message.role",
+        "message.usage.cache_creation_input_tokens",
+        "message.usage.cache_read_input_tokens",
+        "message.usage.input_tokens",
+        "message.usage.output_tokens",
+        "message.usage.service_tier",
+        "model",
+        "role",
+        "stop_reason",
+        "usage.cache_creation_input_tokens",
+        "usage.cache_read_input_tokens",
+        "usage.input_tokens",
+        "usage.output_tokens",
+        "usage.service_tier",
+    )
 
     def list_models(self) -> collections.abc.Sequence[str]:
         raw_response = self.http_request(
@@ -422,6 +467,7 @@ class AnthropicClient(AiClient):
                     yield AiResponse(
                         is_delta=False,
                         is_reasoning=False,
+                        is_status=False,
                         text=get_item(content, "text", "")
                     )
 
@@ -429,8 +475,13 @@ class AnthropicClient(AiClient):
                     yield AiResponse(
                         is_delta=False,
                         is_reasoning=True,
+                        is_status=False,
                         text=get_item(content, "thinking", ""),
                     )
+
+            yield from self.compile_status(
+                self.extract_status(response, self.STATUS_PATHS)
+            )
 
     def respond_streaming(
             self,
@@ -446,6 +497,7 @@ class AnthropicClient(AiClient):
             reasoning,
             stream=True,
         )
+        status = {}
 
         for event_type, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
             try:
@@ -454,6 +506,8 @@ class AnthropicClient(AiClient):
             except json.JSONDecodeError:
                 continue
 
+            status.update(self.extract_status(data, self.STATUS_PATHS))
+
             if event_type == "content_block_start":
                 content_type = get_item(data, "content_block.type")
 
@@ -461,6 +515,7 @@ class AnthropicClient(AiClient):
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=True,
+                        is_status=False,
                         text=get_item(data, "content_block.thinking", ""),
                     )
 
@@ -468,6 +523,7 @@ class AnthropicClient(AiClient):
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=False,
+                        is_status=False,
                         text=get_item(data, "content_block.text", ""),
                     )
 
@@ -478,6 +534,7 @@ class AnthropicClient(AiClient):
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=True,
+                        is_status=False,
                         text=get_item(data, "delta.thinking", ""),
                     )
 
@@ -485,8 +542,11 @@ class AnthropicClient(AiClient):
                     yield AiResponse(
                         is_delta=True,
                         is_reasoning=False,
+                        is_status=False,
                         text=get_item(data, "delta.text", ""),
                     )
+
+        yield from self.compile_status(status)
 
     def _build_request(self, model, conversation, temperature, reasoning, stream):
         headers = {
@@ -571,6 +631,21 @@ class DeepSeekClient(AiClient):
     URL_CHAT = "https://api.deepseek.com/chat/completions"
     URL_MODELS = "https://api.deepseek.com/models"
 
+    STATUS_PATHS = (
+        "created",
+        "finish_reason",
+        "id",
+        "model",
+        "system_fingerprint",
+        "usage.completion_tokens",
+        "usage.completion_tokens_details.reasoning_tokens",
+        "usage.prompt_cache_hit_tokens",
+        "usage.prompt_cache_miss_tokens",
+        "usage.prompt_tokens",
+        "usage.prompt_tokens_details.cached_tokens",
+        "usage.total_tokens",
+    )
+
     def list_models(self) -> collections.abc.Sequence[str]:
         raw_response = self.http_request(
             "GET",
@@ -600,6 +675,7 @@ class DeepSeekClient(AiClient):
             stream=False,
         )
         response_bytes = self.http_request("POST", self.URL_CHAT, headers, body)
+        status = {}
 
         try:
             response = json.loads(response_bytes)
@@ -616,11 +692,27 @@ class DeepSeekClient(AiClient):
                 text = get_item(choice, "message.content", "")
 
                 if reasoning is not None:
-                    yield AiResponse(is_delta=False, is_reasoning=True, text=reasoning)
+                    yield AiResponse(
+                        is_delta=False,
+                        is_reasoning=True,
+                        is_status=False,
+                        text=reasoning,
+                    )
 
-                yield AiResponse(is_delta=False, is_reasoning=False, text=text)
+                yield AiResponse(
+                    is_delta=False,
+                    is_reasoning=False,
+                    is_status=False,
+                    text=text,
+                )
+
+                status.update(self.extract_status(choice, self.STATUS_PATHS))
 
                 break
+
+            status.update(self.extract_status(response, self.STATUS_PATHS))
+
+            yield from self.compile_status(status)
 
     def respond_streaming(
             self,
@@ -636,6 +728,7 @@ class DeepSeekClient(AiClient):
             reasoning,
             stream=True,
         )
+        status = {}
 
         for _, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
             try:
@@ -649,14 +742,30 @@ class DeepSeekClient(AiClient):
                     reasoning = get_item(choice, "delta.reasoning_content")
 
                     if reasoning is not None:
-                        yield AiResponse(is_delta=True, is_reasoning=True, text=reasoning)
+                        yield AiResponse(
+                            is_delta=True,
+                            is_reasoning=True,
+                            is_status=False,
+                            text=reasoning,
+                        )
 
                     text = get_item(choice, "delta.content")
 
                     if text is not None:
-                        yield AiResponse(is_delta=True, is_reasoning=False, text=text)
+                        yield AiResponse(
+                            is_delta=True,
+                            is_reasoning=False,
+                            is_status=False,
+                            text=text,
+                        )
+
+                    status.update(self.extract_status(choice, self.STATUS_PATHS))
 
                     break
+
+                status.update(self.extract_status(data, self.STATUS_PATHS))
+
+        yield from self.compile_status(status)
 
     def _build_request_headers(self):
         return {
@@ -704,6 +813,19 @@ class GoogleClient(AiClient):
         "Accept": "application/json",
     }
 
+    STATUS_PATHS = (
+        "finishReason",
+        "modelVersion",
+        "promptFeedback.blockReason",
+        "responseId",
+        "usageMetadata.cachedContentTokenCount",
+        "usageMetadata.candidatesTokenCount",
+        "usageMetadata.promptTokenCount",
+        "usageMetadata.thoughtsTokenCount",
+        "usageMetadata.toolUsePromptTokenCount",
+        "usageMetadata.totalTokenCount",
+    )
+
     def list_models(self) -> collections.abc.Sequence[str]:
         raw_response = self.http_request(
             "GET",
@@ -728,8 +850,10 @@ class GoogleClient(AiClient):
         url = self.URL_TPL_CHAT.format(model=model, api_key= self._api_key)
         body = self._build_request_body(conversation, temperature, reasoning)
         response = self.http_request("POST", url, self.HEADERS, body)
+        status = {}
 
-        yield from self._process_response(response, is_delta=True)
+        yield from self._process_response(response, status, is_delta=True)
+        yield from self.compile_status(status)
 
     def respond_streaming(
             self,
@@ -740,9 +864,12 @@ class GoogleClient(AiClient):
     ) -> typing.Iterator[AiResponse]:
         url = self.URL_TPL_CHAT_STREAM.format(model=model, api_key= self._api_key)
         body = self._build_request_body(conversation, temperature, reasoning)
+        status = {}
 
         for _, data in self.http_sse("POST", url, self.HEADERS, body):
-            yield from self._process_response(data, is_delta=True)
+            yield from self._process_response(data, status, is_delta=True)
+
+        yield from self.compile_status(status)
 
     def _build_request_body(self, conversation, temperature, reasoning):
         system_prompt, contents = self._convert_conversation(conversation)
@@ -798,6 +925,7 @@ class GoogleClient(AiClient):
     def _process_response(
             self,
             response_bytes: bytes,
+            status: typing.Dict[str, typing.Any],
             is_delta: bool,
     ) -> typing.Iterator[AiResponse]:
         try:
@@ -818,10 +946,15 @@ class GoogleClient(AiClient):
                         yield AiResponse(
                             is_delta=True,
                             is_reasoning=get_item(part, "thought", False),
+                            is_status=False,
                             text=text,
                         )
 
+                status.update(self.extract_status(candidate, self.STATUS_PATHS))
+
                 break
+
+            status.update(self.extract_status(response, self.STATUS_PATHS))
 
 
 class OpenAiClient(AiClient):
@@ -830,6 +963,30 @@ class OpenAiClient(AiClient):
 
     URL_CHAT = "https://api.openai.com/v1/responses"
     URL_MODELS = "https://api.openai.com/v1/models"
+
+    STATUS_PATHS = (
+        "created_at",
+        "error.code",
+        "error.message",
+        "id",
+        "incomplete_details.reason",
+        "max_output_tokens",
+        "max_tool_calls",
+        "model",
+        "prompt_cache_key",
+        "reasoning.effort",
+        "service_tier",
+        "status",
+        "text.format.type",
+        "text.verbosity",
+        "tool_choice",
+        "truncation",
+        "usage.input_tokens",
+        "usage.input_tokens_details.cached_tokens",
+        "usage.output_tokens",
+        "usage.output_tokens_details.reasoning_tokens",
+        "usage.total_tokens",
+    )
 
     def list_models(self) -> collections.abc.Sequence[str]:
         raw_response = self.http_request(
@@ -860,8 +1017,10 @@ class OpenAiClient(AiClient):
             stream=False,
         )
         response = self.http_request("POST", self.URL_CHAT, headers, body)
+        status = {}
 
-        yield from self._process_complete_response(response, "output")
+        yield from self._process_complete_response(response, ".", status)
+        yield from self.compile_status(status)
 
     def respond_streaming(
             self,
@@ -877,23 +1036,42 @@ class OpenAiClient(AiClient):
             reasoning,
             stream=True,
         )
+        status = {}
 
-        for event_type, data in self.http_sse("POST", self.URL_CHAT, headers, body):
+        for event_type, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
             if event_type == "response.output_text.delta":
                 try:
-                    text = get_item(json.loads(data), "delta", "")
+                    text = get_item(json.loads(data_bytes), "delta", "")
 
                 except json.JSONDecodeError:
                     pass
 
                 else:
-                    yield AiResponse(is_delta=True, is_reasoning=False, text=text)
+                    yield AiResponse(
+                        is_delta=True,
+                        is_reasoning=False,
+                        is_status=False,
+                        text=text,
+                    )
+
+            elif event_type == "response.created" or event_type == "response.in_progress":
+                try:
+                    data = get_item(json.loads(data_bytes), "response")
+
+                except json.JSONDecodeError:
+                    pass
+
+                else:
+                    status.update(self.extract_status(data, self.STATUS_PATHS))
 
             elif event_type == "response.completed":
                 yield from self._process_complete_response(
-                    data,
-                    "response.output",
+                    data_bytes,
+                    "response",
+                    status,
                 )
+
+        yield from self.compile_status(status)
 
     def _build_request_headers(self):
         return {
@@ -934,6 +1112,7 @@ class OpenAiClient(AiClient):
             self,
             response_bytes: bytes,
             path: str,
+            status: typing.Dict[str, typing.Any],
     ) -> typing.Iterator[AiResponse]:
         try:
             response = json.loads(response_bytes)
@@ -942,7 +1121,9 @@ class OpenAiClient(AiClient):
             pass
 
         else:
-            for output in get_item(response, path, []):
+            response = get_item(response, path)
+
+            for output in get_item(response, "output", []):
                 if get_item(output, "type") != "message":
                     continue
 
@@ -952,13 +1133,34 @@ class OpenAiClient(AiClient):
 
                     text = get_item(content, "text", "")
 
-                    yield AiResponse(is_delta=False, is_reasoning=False, text=text)
+                    yield AiResponse(
+                        is_delta=False,
+                        is_reasoning=False,
+                        is_status=False,
+                        text=text,
+                    )
+
+            status.update(self.extract_status(response, self.STATUS_PATHS))
 
 
 class PerplexityClient(AiClient):
     # https://docs.perplexity.ai/api-reference/chat-completions
 
     URL_CHAT = "https://api.perplexity.ai/chat/completions"
+
+    STATUS_PATHS = (
+        "created",
+        "finish_reason",
+        "id",
+        "model",
+        "usage.citation_tokens",
+        "usage.completion_tokens",
+        "usage.num_search_queries",
+        "usage.prompt_tokens",
+        "usage.reasoning_tokens",
+        "usage.search_context_size",
+        "usage.total_tokens",
+    )
 
     def list_models(self) -> collections.abc.Sequence[str]:
         return [
@@ -990,7 +1192,9 @@ class PerplexityClient(AiClient):
             pass
 
         else:
-            content = self._find_content(response, "message")
+            status = {}
+            content = self._find_content(response, "message", status)
+            status.update(self.extract_status(response, self.STATUS_PATHS))
             citations = self._format_citations(
                 get_item(response, "citations", []),
                 get_item(response, "search_results", []),
@@ -998,9 +1202,21 @@ class PerplexityClient(AiClient):
             reasoning, text = self._extract_response_parts(content)[:2]
 
             if reasoning != "":
-                yield AiResponse(is_delta=False, is_reasoning=True, text=reasoning)
+                yield AiResponse(
+                    is_delta=False,
+                    is_reasoning=True,
+                    is_status=False,
+                    text=reasoning,
+                )
 
-            yield AiResponse(is_delta=False, is_reasoning=False, text=citations + text)
+            yield AiResponse(
+                is_delta=False,
+                is_reasoning=False,
+                is_status=False,
+                text=citations + text,
+            )
+
+            yield from self.compile_status(status)
 
     def respond_streaming(
             self,
@@ -1021,6 +1237,7 @@ class PerplexityClient(AiClient):
         old_text_started = False
         text_started = False
         citations = None
+        status = {}
 
         for _, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
             try:
@@ -1038,7 +1255,8 @@ class PerplexityClient(AiClient):
                     get_item(data, "search_results", []),
                 )
 
-            content = self._find_content(data, "delta")
+            content = self._find_content(data, "delta", status)
+            status.update(self.extract_status(data, self.STATUS_PATHS))
 
             old_text_started = text_started
             reasoning, text, reasoning_started, text_started = (
@@ -1050,13 +1268,30 @@ class PerplexityClient(AiClient):
             )
 
             if reasoning_started and reasoning != "":
-                yield AiResponse(is_delta=True, is_reasoning=True, text=reasoning)
+                yield AiResponse(
+                    is_delta=True,
+                    is_reasoning=True,
+                    is_status=False,
+                    text=reasoning,
+                )
 
             if text_started:
                 if not old_text_started:
-                    yield AiResponse(is_delta=True, is_reasoning=False, text=citations)
+                    yield AiResponse(
+                        is_delta=True,
+                        is_reasoning=False,
+                        is_status=False,
+                        text=citations,
+                    )
 
-                yield AiResponse(is_delta=True, is_reasoning=False, text=text)
+                yield AiResponse(
+                    is_delta=True,
+                    is_reasoning=False,
+                    is_status=False,
+                    text=text,
+                )
+
+        yield from self.compile_status(status)
 
     def _build_request(self, model, conversation, temperature, reasoning, stream):
         headers = {
@@ -1115,7 +1350,7 @@ class PerplexityClient(AiClient):
 
         return citations_text + search_results_text
 
-    def _find_content(self, response, key):
+    def _find_content(self, response, key, status):
         content = None
 
         for choice in get_item(response, "choices", []):
@@ -1123,6 +1358,7 @@ class PerplexityClient(AiClient):
                 continue
 
             content = get_item(choice, key + ".content")
+            status.update(self.extract_status(choice, self.STATUS_PATHS))
 
             if content is not None:
                 break
@@ -1624,6 +1860,7 @@ Available models:
             MessageType.USER: "User",
             MessageType.AI: "AI",
             MessageType.AI_REASONING: "AI Reasoning",
+            MessageType.AI_STATUS: "AI Status",
         }
 
         notes = self.NOTES_HEADER
@@ -1723,6 +1960,10 @@ Available models:
             elif new_block_type == "ai":
                 action = "append"
                 message_type = MessageType.AI
+
+            elif new_block_type == "ai status":
+                action = "append"
+                message_type = MessageType.AI_STATUS
 
             elif new_block_type == "notes":
                 action = "skip"
@@ -1834,7 +2075,14 @@ Available models:
                 self._reasoning,
             )
 
+        status = []
+
         for response in texts:
+            if response.is_status:
+                status.append(response.text.strip())
+
+                continue
+
             if response.is_reasoning:
                 if response.is_delta:
                     reasoning += response.text
@@ -1901,6 +2149,15 @@ Available models:
             yield response_text
 
         yield "\n"
+
+        if len(status) > 0:
+            status_text = "```\n" + "\n".join(status).strip() + "\n```"
+
+            self._messages.append(
+                Message(type=MessageType.AI_STATUS, text=status_text)
+            )
+
+            yield "\n# === AI Status ===\n\n" + status_text + "\n"
 
 
 def apply_settings(messenger: AiMessenger, settings: typing.Dict[str, typing.Any]):
@@ -2184,6 +2441,11 @@ Something similar to that sentence, just not as dumb.
 A sentence seeking an answer.
 
 
+# === AI Status ===
+
+Status info, stop reason, etc. here.
+
+
 # === User ===
 
 And what is The Answer?"""
@@ -2405,7 +2667,7 @@ Temperature: 2.0
             self.LONG_CONVERSATION,
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
                 ],
             ],
         )
@@ -2445,7 +2707,8 @@ Temperature: 2.0
             self.LONG_CONVERSATION,
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=True, text="Status info here."),
                 ],
             ],
         )
@@ -2459,6 +2722,13 @@ Temperature: 2.0
 # === AI ===
 
 42.
+
+
+# === AI Status ===
+
+```
+Status info here.
+```
 """
         self.assertEqual(
             [
@@ -2470,6 +2740,7 @@ Temperature: 2.0
                 "\n\n# === AI ===\n\n",
                 "42.",
                 "\n",
+                "\n# === AI Status ===\n\n```\nStatus info here.\n```\n",
             ],
             response_chunks,
         )
@@ -2495,7 +2766,7 @@ Temperature: 2.0
             edited_conversation,
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
                 ],
             ],
         )
@@ -2549,7 +2820,7 @@ What is The Answer?
         ai_messenger, ai_client = self.create_messenger(
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
                 ],
             ],
         )
@@ -2635,7 +2906,7 @@ What is The Answer?
             self.LONG_CONVERSATION,
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
                 ],
             ],
         )[0]
@@ -2750,7 +3021,7 @@ What is The Answer?
             conversation,
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
                 ],
             ],
         )
@@ -2789,12 +3060,12 @@ What is The Answer?
             self.LONG_CONVERSATION,
             [
                 [
-                    AiResponse(is_delta=True, is_reasoning=True, text="6*9"),
-                    AiResponse(is_delta=True, is_reasoning=True, text=" which is 42"),
-                    AiResponse(is_delta=True, is_reasoning=True, text=" in base 13."),
-                    AiResponse(is_delta=True, is_reasoning=False, text="4"),
-                    AiResponse(is_delta=True, is_reasoning=False, text="2"),
-                    AiResponse(is_delta=True, is_reasoning=False, text="."),
+                    AiResponse(is_delta=True, is_reasoning=True, is_status=False, text="6*9"),
+                    AiResponse(is_delta=True, is_reasoning=True, is_status=False, text=" which is 42"),
+                    AiResponse(is_delta=True, is_reasoning=True, is_status=False, text=" in base 13."),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="4"),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="2"),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="."),
                 ],
             ],
         )
@@ -2853,15 +3124,16 @@ What is The Answer?
             self.LONG_CONVERSATION,
             [
                 [
-                    AiResponse(is_delta=True, is_reasoning=True, text="6*9"),
-                    AiResponse(is_delta=True, is_reasoning=True, text=" which is 42"),
-                    AiResponse(is_delta=True, is_reasoning=True, text=" in base 13."),
-                    AiResponse(is_delta=False, is_reasoning=True, text="The answer is 42."),
-                    AiResponse(is_delta=True, is_reasoning=False, text="6"),
-                    AiResponse(is_delta=True, is_reasoning=False, text="*"),
-                    AiResponse(is_delta=True, is_reasoning=False, text="9"),
-                    AiResponse(is_delta=True, is_reasoning=False, text="."),
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=True, is_reasoning=True, is_status=False, text="6*9"),
+                    AiResponse(is_delta=True, is_reasoning=True, is_status=False, text=" which is 42"),
+                    AiResponse(is_delta=True, is_reasoning=True, is_status=False, text=" in base 13."),
+                    AiResponse(is_delta=False, is_reasoning=True, is_status=False, text="The answer is 42."),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="6"),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="*"),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="9"),
+                    AiResponse(is_delta=True, is_reasoning=False, is_status=False, text="."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=True, text="Status info here."),
                 ],
             ],
         )
@@ -2880,6 +3152,13 @@ The answer is 42.
 # === AI ===
 
 42.
+
+
+# === AI Status ===
+
+```
+Status info here.
+```
 """
         self.assertEqual(
             [
@@ -2898,6 +3177,7 @@ The answer is 42.
                 "9",
                 ".",
                 "\n",
+                "\n# === AI Status ===\n\n```\nStatus info here.\n```\n",
             ],
             response_chunks,
         )
@@ -2921,7 +3201,7 @@ The answer is 42.
             self.LONG_CONVERSATION,
             [
                 [
-                    AiResponse(is_delta=False, is_reasoning=False, text="42."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
                 ],
             ],
         )
