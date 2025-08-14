@@ -1209,6 +1209,8 @@ class PerplexityClient(AiClient):
                     text=reasoning,
                 )
 
+            # Citations and search results are often referenced in the response
+            # text so we are handling them as an integral part of the text.
             yield AiResponse(
                 is_delta=False,
                 is_reasoning=False,
