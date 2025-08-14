@@ -857,9 +857,10 @@ class GoogleClient(AiClient):
         body = self._build_request_body(conversation, temperature, reasoning)
         response = self.http_request("POST", url, self.HEADERS, body)
         status = {}
+        citations = []
 
-        yield from self._process_response(response, status, is_delta=True)
-        yield from self.compile_status(status)
+        yield from self._process_response(response, status, citations, is_delta=True)
+        yield from self._compile_status(status, citations)
 
     def respond_streaming(
             self,
@@ -871,11 +872,12 @@ class GoogleClient(AiClient):
         url = self.URL_TPL_CHAT_STREAM.format(model=model, api_key= self._api_key)
         body = self._build_request_body(conversation, temperature, reasoning)
         status = {}
+        citations = []
 
         for _, data in self.http_sse("POST", url, self.HEADERS, body):
-            yield from self._process_response(data, status, is_delta=True)
+            yield from self._process_response(data, status, citations, is_delta=True)
 
-        yield from self.compile_status(status)
+        yield from self._compile_status(status, citations)
 
     def _build_request_body(self, conversation, temperature, reasoning):
         system_prompt, contents = self._convert_conversation(conversation)
@@ -932,6 +934,7 @@ class GoogleClient(AiClient):
             self,
             response_bytes: bytes,
             status: typing.Dict[str, typing.Any],
+            citations: typing.List[str],
             is_delta: bool,
     ) -> typing.Iterator[AiResponse]:
         try:
@@ -958,9 +961,61 @@ class GoogleClient(AiClient):
 
                 status.update(self.extract_status(candidate, self.STATUS_PATHS))
 
+                candidate_citations = get_item(
+                    candidate,
+                    "citationMetadata.citationSources",
+                    [],
+                )
+
+                for candidate_citation in candidate_citations:
+                    uri = get_item(candidate_citation, "uri")
+
+                    if uri:
+                        citations.append(uri)
+
                 break
 
             status.update(self.extract_status(response, self.STATUS_PATHS))
+
+    def _compile_status(
+            self,
+            status: typing.Dict[str, typing.Any],
+            citations: typing.List[str],
+    ) -> typing.Iterator[AiResponse]:
+        if len(citations) == 0:
+            yield from super().compile_status(status)
+
+        else:
+            # Citations are stored in the status message because they are
+            # usually not directly referenced in the response text.
+            citations_text = (
+                "Citations:\n"
+                + (
+                    "\n".join(
+                        f"{i+1}. {citation}"
+                        for i, citation in enumerate(dict.fromkeys(citations).keys())
+                    )
+                )
+            )
+            responses = list(self.compile_status(status))
+
+            if len(responses) == 0:
+                yield AiResponse(
+                    is_delta=False,
+                    is_reasoning=False,
+                    is_status=True,
+                    text=citations_text,
+                )
+
+            else:
+                responses[0] = AiResponse(
+                    is_delta=False,
+                    is_reasoning=False,
+                    is_status=True,
+                    text=citations_text + "\n\n" + responses[0].text,
+                )
+
+                yield from responses
 
 
 class OpenAiClient(AiClient):
