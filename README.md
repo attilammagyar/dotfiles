@@ -13,7 +13,8 @@ Files and directories
     * `gitconfig`
     * `gitignore`
  * `scripts`: helper scripts for `dotfiles` and automations of repetitive tasks
-    * `ai.py`: standalone CLI tool for chatting with various LLMs (work-in-progress)
+    * `ai.py`: standalone CLI tool for chatting with various LLMs (beware the
+      sass though)
     * `backup.sh`: create an encrypted and gzipped tarball from a directory
     * `restore.sh`: restore a directory from a backup created by `backup.sh`
     * `bake`: make-shift wrapper around make to do compiling and test
