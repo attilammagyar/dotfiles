@@ -382,11 +382,17 @@ class AiClient:
     @staticmethod
     def compile_status(status: typing.Dict[str, typing.Any]) -> typing.Iterator[AiResponse]:
         if len(status) > 0:
+            status_text = (
+                "```\n"
+                + ("\n".join(f"{path}: {value}" for path, value in status.items()))
+                + "\n```"
+            )
+
             yield AiResponse(
                 is_delta=False,
                 is_reasoning=False,
                 is_status=True,
-                text="\n".join(f"{path}: {value}" for path, value in status.items()),
+                text=status_text,
             )
 
 
@@ -2159,7 +2165,7 @@ Available models:
         yield "\n"
 
         if len(status) > 0:
-            status_text = "```\n" + "\n".join(status).strip() + "\n```"
+            status_text = "\n\n".join(status).strip()
 
             self._messages.append(
                 Message(type=MessageType.AI_STATUS, text=status_text)
@@ -2716,7 +2722,8 @@ Temperature: 2.0
             [
                 [
                     AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
-                    AiResponse(is_delta=False, is_reasoning=False, is_status=True, text="Status info here."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=True, text="Status info 1 here."),
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=True, text="Status info 2 here."),
                 ],
             ],
         )
@@ -2734,9 +2741,9 @@ Temperature: 2.0
 
 # === AI Status ===
 
-```
-Status info here.
-```
+Status info 1 here.
+
+Status info 2 here.
 """
         self.assertEqual(
             [
@@ -2748,7 +2755,7 @@ Status info here.
                 "\n\n# === AI ===\n\n",
                 "42.",
                 "\n",
-                "\n# === AI Status ===\n\n```\nStatus info here.\n```\n",
+                "\n# === AI Status ===\n\nStatus info 1 here.\n\nStatus info 2 here.\n",
             ],
             response_chunks,
         )
@@ -3164,9 +3171,7 @@ The answer is 42.
 
 # === AI Status ===
 
-```
 Status info here.
-```
 """
         self.assertEqual(
             [
@@ -3185,7 +3190,7 @@ Status info here.
                 "9",
                 ".",
                 "\n",
-                "\n# === AI Status ===\n\n```\nStatus info here.\n```\n",
+                "\n# === AI Status ===\n\nStatus info here.\n",
             ],
             response_chunks,
         )
