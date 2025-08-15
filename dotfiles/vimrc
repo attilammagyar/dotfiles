@@ -503,3 +503,35 @@ function! AIFilter()
     endif
 endfunction
 command! -nargs=0 AI call AIFilter()
+
+" Pressing I (Shift+i) in visual mode will select everything between the
+" previous and the next Markdown code fence.
+function! SelectBetweenMarkdownFences()
+    let l:current_line = line(".")
+    let l:begin = 1
+    let l:end = line("$")
+
+    " Could use search("^```", "Wbcn") and search("^```", "Wn"), but that would
+    " mess up the search history.
+
+    for l:line_num in range(l:current_line, 1, -1)
+        if getline(l:line_num) =~ "^```"
+            let l:begin = l:line_num + 1
+            break
+        endif
+    endfor
+
+    for l:line_num in range(l:current_line + 1, line("$"))
+        if getline(l:line_num) =~ "^```"
+            let l:end = l:line_num - 1
+            break
+        endif
+    endfor
+
+    if l:begin > l:end
+        return
+    endif
+
+    execute "normal! " . l:begin . "Gv" . l:end . "G$"
+endfunction
+xnoremap <silent> I :call SelectBetweenMarkdownFences()<CR>
