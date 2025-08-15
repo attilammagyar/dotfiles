@@ -426,3 +426,84 @@ function! HighlightAllDots()
     match AllDots /\.\+/
 endfunction
 autocmd BufEnter *.js call HighlightAllDots()
+
+
+function! AIFilter()
+    " If the current buffer looks like an ai.py conversation, then run it
+    " through ai.py to generate its continuation, othwerise start a new
+    " conversation in a new tab.
+
+    " Replace the entire buffer with stdout, display stderr on screen.
+    let l:ai_filter_cmd = "%!~/bin/ai.py stdio 2>/dev/tty"
+
+    let l:cursor_position = getpos(".")
+
+    " Does the currently edited buffer's name look like an ai.py conversation?
+    " If the name is empty or ends with .md, then it does.
+    let l:may_be_ai_conversation = (expand("%") =~ "^\\(.*\\.md\\)\\?$")
+
+    " Is the buffer an already initialized, ongoing ai.py conversation?
+    " If it contains block header lines used by ai.py, then it is.
+    let l:is_ai_conversation = 0
+
+    if l:may_be_ai_conversation
+        for l:line_num in range(1, line("$"))
+            if getline(l:line_num) =~ "^# === .* ===$"
+                let l:is_ai_conversation = 1
+                break
+            endif
+        endfor
+    endif
+
+    if l:is_ai_conversation
+        " Run the conversation through the filter, and put the cursor at the
+        " beginning of the last AI, AI Reasoning, or User block or to the end
+        " if none of them can be found.
+
+        execute l:ai_filter_cmd
+
+        if v:shell_error != 0
+            undo
+            call setpos(".", l:cursor_position)
+            return
+        endif
+
+        redraw
+
+        let l:response_pos = 0
+
+        for line_num in range(line("$"), 1, -1)
+            if getline(l:line_num) =~ "^# === \\(AI\\( Reasoning\\)*\\|User\\) ===$"
+                let l:response_pos = l:line_num
+                break
+            endif
+        endfor
+
+        if l:response_pos > 0
+            call cursor(l:response_pos, 1)
+        else
+            normal! G
+        endif
+    else
+        " Need to initialize a new conversaion - since this will overwrite the
+        " entire buffer, we do it in a new tab if the current one is not empty
+        " or its name doesn't look like an ai.py conversaion.
+
+        if line("$") != 1 || getline(1) != "" || !l:may_be_ai_conversation
+            tabnew
+        endif
+
+        execute l:ai_filter_cmd
+
+        if v:shell_error != 0
+            undo
+            call setpos(".", l:cursor_position)
+            return
+        endif
+
+        redraw
+        normal! G
+        startinsert
+    endif
+endfunction
+command! -nargs=0 AI call AIFilter()
