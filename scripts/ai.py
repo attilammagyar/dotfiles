@@ -22,6 +22,7 @@ import readline
 import subprocess
 import sys
 import tempfile
+import textwrap
 import time
 import typing
 import unittest
@@ -270,10 +271,13 @@ def main(argv):
                 .strip()
         )
 
-        for chunk in messenger.ask("", lambda conversation: conversation_in):
-            info(chunk, end="")
+        printer = WrappingPrinter()
+        printer.set_width(WrappingPrinter.get_wrapping_width())
 
-        info("")
+        for chunk in messenger.ask("", lambda conversation: conversation_in):
+            printer.print(chunk, end="", file=sys.stderr)
+
+        printer.print("", file=sys.stderr)
 
         print(messenger.conversation_to_str())
 
@@ -299,6 +303,76 @@ def info(message: str, end=os.linesep):
 
 def error(message: str):
     info(message)
+
+
+class WrappingPrinter:
+    @staticmethod
+    def get_wrapping_width():
+        try:
+            return max(20, min(80, int(os.get_terminal_size()[0])))
+
+        except:
+            return 80
+
+    def __init__(self):
+        self._width = 80
+        self._column = 0
+
+    def set_width(self, width: int):
+        self._width = max(12, int(width))
+
+    def print(self, text, end=os.linesep, file=sys.stdout, flush=False):
+        is_in_code_block = False
+        text += end
+
+        ends_with_newline = text.endswith("\n") or text.endswith("\r")
+        lines = text.splitlines(keepends=True)
+
+        for i, line in enumerate(lines):
+            if line.startswith("```"):
+                is_in_code_block = not is_in_code_block
+
+            if is_in_code_block or line.strip() == "":
+                self._print_impl(line, end="", file=file, flush=flush)
+
+                if i < len(lines) - 1 or ends_with_newline:
+                    self._column = 0
+
+            else:
+                if self._column >= self._width:
+                    self._column = 0
+                    self._print_impl("", file=file, flush=flush)
+
+                pad = ("a" * (self._column - 1) + " ") if self._column > 1 else ""
+
+                padded_line = pad + line
+
+                wrapped = textwrap.wrap(
+                    padded_line,
+                    width=self._width,
+                    drop_whitespace=False,
+                    expand_tabs=False,
+                    replace_whitespace=False,
+                )
+
+                for j, chunk in enumerate(wrapped):
+                    if j == 0:
+                        chunk = chunk[len(pad):]
+
+                    chunk += "" if j == len(wrapped) - 1 else os.linesep
+
+                    if j > 0 and chunk.startswith(" "):
+                        chunk = chunk[1:]
+
+                    self._print_impl(chunk, end="", file=file, flush=flush)
+
+                    if chunk.endswith("\n") or chunk.endswith("\r"):
+                        self._column = 0
+                    else:
+                        self._column += len(chunk)
+
+    def _print_impl(self, text, end=os.linesep, file=sys.stdout, flush=False):
+        print(text, end=end, file=file, flush=flush)
 
 
 def get_item(
@@ -2260,6 +2334,7 @@ class AiCmd(cmd.Cmd):
         self._edit_conv_filename = None
         self._editor = editor
         self._ai_messenger = ai_messenger
+        self._printer = WrappingPrinter()
 
         readline.set_completer_delims(" \t\n")
 
@@ -2386,16 +2461,20 @@ class AiCmd(cmd.Cmd):
     def do_ask(self, arg):
         "Ask the AI."
 
+        self._printer.set_width(WrappingPrinter.get_wrapping_width())
+
         try:
             response_chunks = self._ai_messenger.ask(
                 arg.strip(),
                 self._edit_conversation,
             )
 
-            for chunk in response_chunks:
-                print(chunk, end="", flush=True)
+            self._printer.print("")
 
-            print("")
+            for chunk in response_chunks:
+                self._printer.print(chunk, end="", flush=True)
+
+            self._printer.print("")
 
         except ValueError as value_err:
             print("")
@@ -3404,6 +3483,66 @@ class FakeAiClient(AiClient):
         response = self.responses.pop(0)
 
         yield from response
+
+
+class TestableWrappingPrinter(WrappingPrinter):
+    def __init__(self):
+        super().__init__()
+
+        self.printed = ""
+
+    def _print_impl(self, text, end=os.linesep, file=sys.stdout, flush=False):
+        self.printed += text + end
+
+
+class TestWrappingPrinter(unittest.TestCase):
+    def test_basic_wrapping(self):
+        printer = TestableWrappingPrinter()
+        printer.set_width(20)
+        printer.print("The quick brown fox jumps over the lazy dog.", end="\n")
+        printer.print("", end="\n")
+        printer.print("This is a long long long long long long line.\n", end="")
+        printer.print("```\nThis is a long long long conde line.\n```\n", end="")
+        printer.print("This is a ", end="")
+
+        for i in range(10):
+            printer.print("long ", end="")
+
+        printer.print("line.\n", end="")
+        printer.print("\n\n", end="")
+        printer.print("a b c d e f g h i j k l m n o p q r s t u v w x y z\n", end="")
+        printer.print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n", end="")
+        printer.print("---------------------------------------------------\n", end="")
+
+        expected_printed = """\
+The quick brown fox 
+jumps over the lazy 
+dog.
+
+This is a long long 
+long long long long 
+line.
+```
+This is a long long long conde line.
+```
+This is a long long 
+long long long long 
+long long long long 
+line.
+
+
+a b c d e f g h i j 
+k l m n o p q r s t 
+u v w x y z
+aaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaa
+--------------------
+--------------------
+-----------
+"""
+
+        self.assertEqual(expected_printed, printer.printed)
 
 
 if __name__ == "__main__":
