@@ -390,49 +390,47 @@ noremap <C-i> :call GitFindStep()<CR>
 " :w!! will save the file as root
 cmap w!! w !sudo tee % >/dev/null
 
+" Trailing commas to be highlighted in Python, in order to avoid
+" typo tuples:
+"
+"     def foo(x):
+"         return x + 1,
 function! HighlightTrailingComma()
-    " Trailing commas to be highlighted in Python, in order to avoid
-    " typo tuples:
-    "
-    "     def foo(x):
-    "         return x + 1,
-
     highlight TrailingComma term=reverse ctermbg=Blue guibg=Blue
     match TrailingComma /,\+$/
 endfunction
 autocmd BufEnter *.py call HighlightTrailingComma()
 
+" All dots to be highlighted in JavaScript, in order to avoid typos like
+" this:
+"
+"     (function () {
+"
+"         'use strict';
+"
+"         function foo(a, b)
+"         {
+"             console.log([a ? 1 : 0, b ? 1 : 0]);
+"         }
+"
+"         foo(true, true);      // Array [ 1, 1 ]
+"         foo(false, false);    // Array [ 0, 0 ]
+"         foo(true. false);     // Array [ 0, 0 ]
+"         foo(false. true);     // Array [ 0, 0 ]
+"
+"    })();
 function! HighlightAllDots()
-    " All dots to be highlighted in JavaScript, in order to avoid typos like
-    " this:
-    "
-    "     (function () {
-    "
-    "         'use strict';
-    "
-    "         function foo(a, b)
-    "         {
-    "             console.log([a ? 1 : 0, b ? 1 : 0]);
-    "         }
-    "
-    "         foo(true, true);      // Array [ 1, 1 ]
-    "         foo(false, false);    // Array [ 0, 0 ]
-    "         foo(true. false);     // Array [ 0, 0 ]
-    "         foo(false. true);     // Array [ 0, 0 ]
-    "
-    "    })();
-
     highlight AllDots term=reverse ctermbg=Blue guibg=Blue
     match AllDots /\.\+/
 endfunction
 autocmd BufEnter *.js call HighlightAllDots()
 
+" The :AI command will run the current buffer through ~/bin/ai.py in order to
+" generate a continuation if it looks like an ai.py conversation, otherwise it
+" will start a new conversation.
 function! AIFilter()
-    " If the current buffer looks like an ai.py conversation, then run it
-    " through ai.py to generate its continuation, othwerise start a new
-    " conversation in a new tab.
-
-    " Replace the entire buffer with stdout, display stderr on screen.
+    " Command which will replace the buffer with the stdout of the shell command
+    " while displaying its stderr in the terminal.
     let l:ai_filter_cmd = "%!~/bin/ai.py stdio 2>/dev/tty"
 
     let l:cursor_position = getpos(".")
