@@ -427,7 +427,6 @@ function! HighlightAllDots()
 endfunction
 autocmd BufEnter *.js call HighlightAllDots()
 
-
 function! AIFilter()
     " If the current buffer looks like an ai.py conversation, then run it
     " through ai.py to generate its continuation, othwerise start a new
@@ -497,7 +496,6 @@ function! AIFilter()
 
         if v:shell_error != 0
             undo
-            call setpos(".", l:cursor_position)
             return
         endif
 
