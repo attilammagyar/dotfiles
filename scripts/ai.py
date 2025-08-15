@@ -1823,8 +1823,6 @@ Available models:
 """
 
     BLOCK_HEADER_RE = re.compile(r"^# === (.*) ===$", re.IGNORECASE)
-    FENCED_CODE_BEGIN_RE = re.compile(r"^```[a-zA-Z0-9_-]*$")
-    FENCED_CODE_END_RE = re.compile(r"^```$")
 
     RELEVANT_MESSAGE_TYPES = frozenset(
         (
@@ -2077,10 +2075,14 @@ Available models:
             new_block_type = None
 
             if inside_code:
-                if cls.FENCED_CODE_END_RE.match(line):
+                if line.strip() == "```":
                     inside_code = False
 
-            elif cls.FENCED_CODE_BEGIN_RE.match(line):
+            elif line.startswith("```"):
+                # We only care about fenced code blocks for avoiding
+                # accidentally detected block headers. Code blocks that are
+                # nested inside various Markdown elements like indented list
+                # items or block quotes are irrelevant in this case.
                 inside_code = True
 
             else:
@@ -3155,7 +3157,17 @@ Custom system prompt.
 # === What ===
 
 Not an actual block.
-```\
+```
+
+ * list item 1
+ * list item 2
+
+   1. sub-list
+      ```python
+      print('''
+      # === Code block inside nested list items
+      ''')
+      ```\
 """
         conversation = f"""\
 # === System ===
