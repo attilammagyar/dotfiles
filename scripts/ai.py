@@ -29,6 +29,8 @@ import unittest
 import urllib.parse
 
 
+HOME_DIR_NAME = os.path.expanduser("~")
+
 STATE_FILE_NAME = os.path.expanduser(os.path.join("~", ".ai-py"))
 
 MODELS_CACHE_TTL_SECONDS = 3 * 24 * 60 * 60
@@ -2450,6 +2452,7 @@ class AiCmd(cmd.Cmd):
         now = datetime.datetime.now()
         conv_file = tempfile.NamedTemporaryFile(
             prefix=now.strftime("ai-%Y-%m-%d-%H-%M-%S-"),
+            dir=HOME_DIR_NAME,
             suffix=".md",
             mode="w+",
             delete=False,
