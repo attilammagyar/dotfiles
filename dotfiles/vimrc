@@ -469,7 +469,7 @@ function! AIFilter()
 
         let l:response_pos = 0
 
-        for line_num in range(line("$"), 1, -1)
+        for l:line_num in range(line("$"), 1, -1)
             if getline(l:line_num) =~ "^# === \\(AI\\( Reasoning\\)*\\|User\\) ===$"
                 let l:response_pos = l:line_num
                 break
