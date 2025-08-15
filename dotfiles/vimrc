@@ -505,7 +505,8 @@ endfunction
 command! -nargs=0 AI call AIFilter()
 
 " Pressing I (Shift+i) in visual mode will select everything between the
-" previous and the next Markdown code fence.
+" previous and the next Markdown code fence. (Does not handle code blocks
+" that are nested inside other elements like list items or block quotes.)
 function! SelectBetweenMarkdownFences()
     let l:current_line = line(".")
     let l:begin = 1
