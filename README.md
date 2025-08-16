@@ -70,11 +70,13 @@ Its features include:
     * [Perplexity](https://www.perplexity.ai/),
     * and [xAI](https://x.ai/).
 
-`ai.py` as an interactive CLI app:
+`ai.py` as an interactive CLI app (`ai.py interactive` - the default when the
+standard input is a TTY):
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-interactive.gif" alt="ai.py running as an interactive CLI app" />
 
-`ai.py` as a standard Unix filter integrated into Vim:
+`ai.py` as a standard Unix filter (`ai.py stdio` - the default when the
+standard input is not a TTY), integrated into Vim:
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-vim.gif" alt="ai.py integrated into Vim" />
 

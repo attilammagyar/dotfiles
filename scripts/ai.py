@@ -193,24 +193,24 @@ def main(argv):
 
     interactive_parser = subparsers.add_parser(
         "interactive",
-        help="Interactive mode."
+        help="Interactive mode. (The default when stdin is a TTY.)"
     )
     interactive_parser.add_argument(
         "question",
         nargs=argparse.REMAINDER,
-        help="Question to ask.",
+        help="First question to ask.",
     )
 
     stdio_parser = subparsers.add_parser(
         "stdio",
-        help="Read conversation from stdin, output response to stdout."
+        help="Read conversation from stdin, output response to stdout. (The default when stdin is not a TTY.)"
     )
 
     if len(argv) > 0:
         argv.pop(0)
 
     if len(argv) == 0:
-        argv.append("interactive")
+        argv.append("interactive" if sys.stdin.isatty() else "stdio")
 
     parsed_argv = parser.parse_args(argv)
 
