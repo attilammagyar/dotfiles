@@ -66,11 +66,11 @@ Its features include:
     * [OpenAI](https://openai.com/),
     * and [Perplexity](https://www.perplexity.ai/).
 
-### ai.py as an interactive CLI app
+`ai.py` as an interactive CLI app:
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-interactive.gif" alt="ai.py running as an interactive CLI app" />
 
-### ai.py as a standard Unix filter integrated into Vim
+`ai.py` as a standard Unix filter integrated into Vim:
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-vim.gif" alt="ai.py integrated into Vim" />
 
