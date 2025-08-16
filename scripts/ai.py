@@ -213,14 +213,7 @@ def main(argv):
         argv.append("interactive" if sys.stdin.isatty() else "stdio")
 
     parsed_argv = parser.parse_args(argv)
-
-    if parsed_argv.command == "test":
-        run_tests(argv)
-
-        return 0
-
     editor = os.getenv("EDITOR", "vi")
-
     state = load_state()
 
     if state is None:
