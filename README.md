@@ -80,6 +80,10 @@ standard input is not a TTY), integrated into Vim:
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-vim.gif" alt="ai.py integrated into Vim" />
 
+### Dependencies
+
+None. Only built-in Python modules.
+
 ### Setting up ai.py
 
 To use `ai.py`, you need to generate an API key for at least one of the
