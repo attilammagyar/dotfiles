@@ -588,6 +588,19 @@ class AiClient:
             )
 
 
+# Some of the following AiClient implementations are very similar to each other,
+# and while I'm aware of the DRY-principle (Don't Repeat Yourself), I'm also
+# aware of the DNAHCTTSC-principle (Do Not Apply Huffman-Coding To The Source
+# Code): since each provider already has their own set of unique little quirks,
+# it is not unreasonable to expect that they will keep diverging from each other
+# on the long run, making it more and more difficult to unify them under a
+# a single, sensible AI-provider-based abstraction layer, or to untangle them
+# when such a layer snaps. Therefore, at least for now, the central abstraction
+# here will remain defined in terms of the needs of AiMessenger, and the
+# surface-level similarities between the concrete AiClient implementations will
+# be kept as is.
+
+
 class AnthropicClient(AiClient):
     # https://docs.anthropic.com/en/api/messages
     # https://console.anthropic.com/settings/limits
