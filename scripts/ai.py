@@ -2973,6 +2973,130 @@ Status info 2 here.
             ai_client.conversation,
         )
 
+    def test_the_system_block_is_moved_to_the_beginning_of_the_conversation(self):
+        edited_conversation = """\
+# === User ===
+
+What is The Answer?
+
+# === System ===
+
+Please act as a helpful AI assistant.
+"""
+
+        ai_messenger, ai_client, response_chunks = self.ask(
+            edited_conversation,
+            [
+                [
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
+                ],
+            ],
+        )
+
+        expected_conversation = f"""\
+{self.NOTES}
+
+# === System ===
+
+Please act as a helpful AI assistant.
+
+
+# === User ===
+
+What is The Answer?
+
+
+# === AI ===
+
+42.
+"""
+        self.assertEqual(
+            [
+                "Waiting for fake...",
+                "\n\n# === AI ===\n\n",
+                "42.",
+                "\n",
+            ],
+            response_chunks,
+        )
+        self.assertEqual(expected_conversation, ai_messenger.conversation_to_str())
+        self.assertEqual("model1", ai_client.model)
+        self.assertEqual(AiMessenger.DEFAULT_TEMPERATURE, ai_client.temperature)
+        self.assertEqual(
+            [
+                Message(
+                    type=MessageType.SYSTEM,
+                    text="Please act as a helpful AI assistant.",
+                ),
+                Message(type=MessageType.USER, text="What is The Answer?"),
+            ],
+            ai_client.conversation,
+        )
+
+    def test_when_a_conversation_has_multile_system_prompts_then_only_the_last_one_is_used(self):
+        edited_conversation = """\
+# === System ===
+
+This gets dropped.
+
+# === User ===
+
+What is The Answer?
+
+# === System ===
+
+Please act as a helpful AI assistant.
+"""
+
+        ai_messenger, ai_client, response_chunks = self.ask(
+            edited_conversation,
+            [
+                [
+                    AiResponse(is_delta=False, is_reasoning=False, is_status=False, text="42."),
+                ],
+            ],
+        )
+
+        expected_conversation = f"""\
+{self.NOTES}
+
+# === System ===
+
+Please act as a helpful AI assistant.
+
+
+# === User ===
+
+What is The Answer?
+
+
+# === AI ===
+
+42.
+"""
+        self.assertEqual(
+            [
+                "Waiting for fake...",
+                "\n\n# === AI ===\n\n",
+                "42.",
+                "\n",
+            ],
+            response_chunks,
+        )
+        self.assertEqual(expected_conversation, ai_messenger.conversation_to_str())
+        self.assertEqual("model1", ai_client.model)
+        self.assertEqual(AiMessenger.DEFAULT_TEMPERATURE, ai_client.temperature)
+        self.assertEqual(
+            [
+                Message(
+                    type=MessageType.SYSTEM,
+                    text="Please act as a helpful AI assistant.",
+                ),
+                Message(type=MessageType.USER, text="What is The Answer?"),
+            ],
+            ai_client.conversation,
+        )
+
     def test_when_the_edited_conversation_lacks_a_settings_block_then_the_current_settings_are_used(self):
         edited_conversation = """\
 # === System ===
