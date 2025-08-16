@@ -40,10 +40,14 @@ ENV_VAR_NAMES = {
     "google": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
     "perplexity": "PERPLEXITY_API_KEY",
+    "xai": "XAI_API_KEY",
 }
 
 # The winner is the last one which finds a match in a sorted model list.
 DEFAULT_MODEL_RE = (
+    re.compile(r"^xai/.*$"),
+    re.compile(r"^xai/grok.*$"),
+    re.compile(r"^xai/grok-[0-9]*$"),
     re.compile(r"^perplexity/sonar.*$"),
     re.compile(r"^perplexity/sonar-pro$"),
     re.compile(r"^perplexity/sonar-reasoning-pro$"),
@@ -231,6 +235,7 @@ def main(argv):
         "google": GoogleClient,
         "openai": OpenAiClient,
         "perplexity": PerplexityClient,
+        "xai": XAiClient,
     }
 
     ai_clients = {
@@ -1650,6 +1655,193 @@ class PerplexityClient(AiClient):
         return parts[0], parts[1], reasoning_started, text_started
 
 
+class XAiClient(AiClient):
+    # https://docs.x.ai/docs/tutorial
+    # https://docs.x.ai/docs/api-reference#chat-completions
+
+    URL_CHAT = "https://api.x.ai/v1/chat/completions"
+    URL_MODELS = "https://api.x.ai/v1/models"
+
+    STATUS_PATHS = (
+        "created",
+        "finish_reason",
+        "id",
+        "message.refusal",
+        "model",
+        "system_fingerprint",
+        "usage.completion_tokens",
+        "usage.completion_tokens_details.accepted_prediction_tokens",
+        "usage.completion_tokens_details.audio_tokens",
+        "usage.completion_tokens_details.reasoning_tokens",
+        "usage.completion_tokens_details.rejected_prediction_tokens",
+        "usage.num_sources_used",
+        "usage.prompt_tokens",
+        "usage.prompt_tokens_details.audio_tokens",
+        "usage.prompt_tokens_details.cached_tokens",
+        "usage.prompt_tokens_details.image_tokens",
+        "usage.prompt_tokens_details.text_tokens",
+        "usage.total_tokens",
+    )
+
+    def list_models(self) -> collections.abc.Sequence[str]:
+        raw_response = self.http_request(
+            "GET",
+            self.URL_MODELS,
+            headers=self._build_request_headers(),
+        )
+        response = json.loads(raw_response)
+
+        return [
+            model["id"]
+            for model in get_item(response, "data", [])
+            if model["object"] == "model"
+        ]
+
+    def respond(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=False,
+        )
+        response_bytes = self.http_request("POST", self.URL_CHAT, headers, body)
+        status = {}
+
+        try:
+            response = json.loads(response_bytes)
+
+        except json.JSONDecodeError:
+            pass
+
+        else:
+            for choice in get_item(response, "choices", []):
+                if get_item(choice, "message.role") != "assistant":
+                    continue
+
+                reasoning = get_item(choice, "message.reasoning_content")
+                text = get_item(choice, "message.content", "")
+
+                if reasoning is not None:
+                    yield AiResponse(
+                        is_delta=False,
+                        is_reasoning=True,
+                        is_status=False,
+                        text=reasoning,
+                    )
+
+                yield AiResponse(
+                    is_delta=False,
+                    is_reasoning=False,
+                    is_status=False,
+                    text=text,
+                )
+
+                status.update(self.extract_status(choice, self.STATUS_PATHS))
+
+                break
+
+            status.update(self.extract_status(response, self.STATUS_PATHS))
+
+            yield from self.compile_status(status)
+
+    def respond_streaming(
+            self,
+            model: str,
+            conversation: typing.Iterator[Message],
+            temperature: float,
+            reasoning: Reasoning,
+    ) -> typing.Iterator[AiResponse]:
+        headers, body = self._build_request(
+            model,
+            conversation,
+            temperature,
+            reasoning,
+            stream=True,
+        )
+        status = {}
+
+        for _, data_bytes in self.http_sse("POST", self.URL_CHAT, headers, body):
+            try:
+                data = json.loads(data_bytes)
+
+            except json.JSONDecodeError:
+                continue
+
+            if get_item(data, "object") == "chat.completion.chunk":
+                for choice in get_item(data, "choices", []):
+                    reasoning = get_item(choice, "delta.reasoning_content")
+
+                    if reasoning is not None:
+                        yield AiResponse(
+                            is_delta=True,
+                            is_reasoning=True,
+                            is_status=False,
+                            text=reasoning,
+                        )
+
+                    text = get_item(choice, "delta.content")
+
+                    if text is not None:
+                        yield AiResponse(
+                            is_delta=True,
+                            is_reasoning=False,
+                            is_status=False,
+                            text=text,
+                        )
+
+                    status.update(self.extract_status(choice, self.STATUS_PATHS))
+
+                    break
+
+                status.update(self.extract_status(data, self.STATUS_PATHS))
+
+        yield from self.compile_status(status)
+
+    def _build_request_headers(self):
+        return {
+            "Authorization": "Bearer " + self._api_key,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+    def _build_request(self, model, conversation, temperature, reasoning, stream):
+        body = {
+            "model": model,
+            "temperature": temperature,
+            "messages": self._convert_conversation(conversation),
+            "stream": stream,
+        }
+
+        if stream:
+            body["stream_options"] = {"include_usage": True}
+
+        if reasoning == Reasoning.ON:
+            body["reasoning_effort"] = "high"
+
+        return self._build_request_headers(), json.dumps(body).encode("utf-8")
+
+    def _convert_conversation(self, conversation):
+        roles = {
+            MessageType.SYSTEM: "system",
+            MessageType.USER: "user",
+            MessageType.AI: "assistant",
+        }
+
+        return [
+            {
+                "role": roles.get(message.type, "user"),
+                "content": message.text,
+            }
+            for message in conversation
+        ]
+
 def load_state():
     info(f"Loading {STATE_FILE_NAME}...")
 
@@ -1685,7 +1877,8 @@ Expected format (omit the API keys that you don't use):
     "deepseek": "DeepSeek R1 API key here (https://platform.deepseek.com/api_keys)",
     "google": "Google Gemini API key here (https://aistudio.google.com/apikey)",
     "openai": "OpenAI ChatGPT API key here (https://platform.openai.com/settings/organization/api-keys)",
-    "perplexity": "Perplexity API key here (https://www.perplexity.ai/account/api/keys)"
+    "perplexity": "Perplexity API key here (https://www.perplexity.ai/account/api/keys)",
+    "xai": "xAI API key here (https://console.x.ai/team/default/api-keys)"
   }
 }
 """,
