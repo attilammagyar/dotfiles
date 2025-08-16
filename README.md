@@ -50,11 +50,12 @@ Its features include:
 
  * Precise control over model selection,
    [sampling temperature](https://en.wikipedia.org/wiki/Softmax_function),
-   reasoning, etc. (The model can be changed even in the middle of a
-   conversation.)
+   reasoning, etc. (Can switch models even in the middle of a conversation.)
 
- * Allows editing the entire conversation in Markdown, including the AI's
-   responses. (Useful for nudging the autoregressive text generation process.)
+ * Simple Markdown-based syntax.
+
+ * Allows editing the entire conversation, including the AI's responses.
+   (Useful for nudging the autoregressive text generation process.)
 
  * Works as a standalone interactive CLI app or as a standard Unix filter
    (when invoked as `ai.py stdio`) that can be integrated with editors like
@@ -107,7 +108,7 @@ provide the API keys via the following environment variables as well:
 
 ### Syntax
 
-A basic conversation after the second turn may look like this:
+A basic conversation after a few turns may look like this:
 
     # === System ===
 
