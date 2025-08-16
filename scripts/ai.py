@@ -2376,6 +2376,11 @@ class AiCmd(cmd.Cmd):
 
         print(self._ai_messenger.get_reasoning_info())
 
+    def complete_reasoning(self, text, line, begidx, endidx):
+        options = [Reasoning.DEFAULT, Reasoning.OFF, Reasoning.ON]
+
+        return [o for o in options if o.value.startswith(text.strip())]
+
     def do_streaming(self, arg):
         "Turn streaming on or off."
 
@@ -2389,6 +2394,11 @@ class AiCmd(cmd.Cmd):
                 self._print_error(err)
 
         print(self._ai_messenger.get_streaming_info())
+
+    def complete_streaming(self, text, line, begidx, endidx):
+        options = [Streaming.OFF, Streaming.ON]
+
+        return [o for o in options if o.value.startswith(text.strip())]
 
     def do_temperature(self, arg):
         "Show or set the temperature to be used."
