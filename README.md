@@ -55,7 +55,8 @@ Its features include:
  * Simple Markdown-based syntax.
 
  * Allows editing the entire conversation, including the AI's responses.
-   (Useful for nudging the autoregressive text generation process.)
+   (Useful for steering and nudging the autoregressive text generation
+   process.)
 
  * Works as a standalone interactive CLI app or as a standard Unix filter
    (when invoked as `ai.py stdio`) that can be integrated with editors like
@@ -70,12 +71,12 @@ Its features include:
     * [Perplexity](https://www.perplexity.ai/),
     * and [xAI](https://x.ai/).
 
-`ai.py` as an interactive CLI app (`ai.py interactive` - the default when the
-standard input is a TTY):
+`ai.py` running as an interactive CLI app (`ai.py interactive` - the default
+when the standard input is a TTY):
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-interactive.gif" alt="ai.py running as an interactive CLI app" />
 
-`ai.py` as a standard Unix filter (`ai.py stdio` - the default when the
+`ai.py` running as a standard Unix filter (`ai.py stdio` - the default when the
 standard input is not a TTY), integrated into Vim:
 
 <img src="https://raw.githubusercontent.com/attilammagyar/dotfiles/main/images/ai-py-vim.gif" alt="ai.py integrated into Vim" />
