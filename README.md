@@ -184,40 +184,39 @@ prompt.
 
 It's intended to solve my complaints against existing solutions:
 
-1. I'm not exactly a fan of digital feudalism and the subscription based
-   economy, and I avoid it like the plague whenever possible. Prepaid API
-   credits are closer to my heart.
+1. I'm not a fan of digital feudalism and the subscription based economy, and I
+   avoid it like the plague. Prepaid API credits are somewhat closer to my
+   heart.
 
 2. GUIs and agents: limited to no control over model selection, system prompt,
    etc.
 
-3. Agents: if I have to keep an eye on what they are doing, then they aren't
-   that much of a speed up. But I'm also not comfortable with leaving them to
-   work alone, changing files and running arbitrary commands based on a
-   stochastic process, regardless of how sophisticated that may be.
+3. Agents: if I have to keep an eye on what they are doing, then they don't
+   seem to be that much of a speed up. But I'm also not comfortable with
+   leaving them to work alone, changing files and running arbitrary commands
+   based on a stochastic process, regardless of how sophisticated that may be.
 
-4. You get good at what you practice, and you lose the skills that you don't,
-   so I try to limit my AI usage to doing only the boring parts of programming
-   (like cookie-cutter UI stuff, boilerplate, etc.) and to get my work
+4. You get good at what you practice, and you lose skills that you don't.
+   Therefore I try to limit my AI usage to only the boring parts of programming
+   (e.g. cookie-cutter UI stuff, boilerplate, etc.), and to get my work
    reviewed.
 
-5. There is undeniably a hype in the industry right now (as of August 2025).
-   When the music stops and the VC money dries up, several products and
-   services will go down, others will get heavily "enshittified", so developing
-   a reliance on any particular product right now risks future pain.
+5. There is undeniably a hype in the industry right now (as of August, 2025).
+   When the music stops and the VC money dries up, several products will go
+   down, others will get heavily "enshittified". Developing a reliance on any
+   particular service risks future pain.
 
-6. As far as I know, the legal status of AI generated content is unclear at
-   the moment: can you put large chunks of it in open source (e.g. GPL) or
-   proprietary projects? How much do you have to modify it before you can?
-   Where's the threshold of originality? Is the generated code a genuine
-   product of creativity, or is it only the prompt? Do you have to include the
-   prompt as well?
+6. AFAIK the legal status of AI generated code is still unclear (as of August,
+   2025): can you put large chunks of it in open source (e.g. GPL) or
+   proprietary projects?  How much do you have to modify it before you can?
+   Where's the threshold of originality?  Do you have to include the prompts as
+   well?
 
-7. The default AI persona drives me nuts with the excessive politeness and
-   constant sugarcoating.
+7. The default AI persona drives me nuts with its excessive sugarcoating and
+   politeness.
 
 8. I've switched to Vim around 2011 and never looked back. IDEs came and went
-   over the years (Eclipse, NetBeans, IntelliJ, Sublime, VS Code, etc.), but
-   so far nothing has beaten Vim in terms of value vs. cost, especially with
-   its powerful scripting capabilities and macros. I don't see a reason for
-   this to change in the age of AI.
+   over the years (Eclipse, NetBeans, IntelliJ, Sublime, VS Code, etc.), but so
+   far nothing has beaten Vim in terms of value vs. cost, especially with its
+   stellar scriptability and macros. I don't see a reason for this to change
+   any time soon.
