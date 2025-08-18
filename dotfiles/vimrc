@@ -430,16 +430,18 @@ autocmd BufEnter *.js call HighlightAllDots()
 " established ai-cat.py conversation, otherwise it will initialize a new
 " conversation in a new tab.
 function! AICat()
-    " Command which will replace the buffer with the stdout of the shell command
-    " while displaying its stderr in the terminal.
-    let l:ai_cat_cmd = "%!ai-cat.py stdio 2>/dev/tty"
+    let l:console_file = "/dev/tty"
 
     if has("win32")
         " The redirection to the special console file doesn't work in gVim,
         " so there will be no streaming. At least, it works in a terminal based
         " vim.exe.
-        let l:ai_cat_cmd = "%!ai-cat.py stdio 2>CON"
+        let l:console_file = "CON"
     endif
+
+    " The command will replace the buffer with the stdout while displaying its
+    " stderr in the terminal.
+    let l:ai_cat_cmd = "%!ai-cat.py stdio 2>" . l:console_file
 
     let l:cursor_position = getpos(".")
 
