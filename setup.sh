@@ -4,6 +4,7 @@ DOTFILES_REPO=$(dirname "$0")
 
 mkdir -vp ~/bin
 cp -vr $DOTFILES_REPO/scripts/* ~/bin/
+cp -v ai-cat/ai-cat.py ~/bin/
 chmod +x ~/bin/*
 
 cp -v $DOTFILES_REPO/dotfiles/bashrc ~/.my_bashrc

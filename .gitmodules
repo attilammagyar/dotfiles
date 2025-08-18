@@ -1,0 +1,3 @@
+[submodule "ai-cat"]
+	path = ai-cat
+	url = git@github.com:attilammagyar/ai-cat.git
