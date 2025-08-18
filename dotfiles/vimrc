@@ -52,7 +52,7 @@ set ruler
 set cmdheight=2
 
 " Hide everything from GUI
-set guioptions=''
+set guioptions=""
 
 " Highlight syntax
 syntax on
