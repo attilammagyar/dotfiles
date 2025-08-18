@@ -491,6 +491,7 @@ function! AIFilter()
         endif
 
         execute l:ai_filter_cmd
+        set filetype=markdown
 
         if v:shell_error != 0
             undo
