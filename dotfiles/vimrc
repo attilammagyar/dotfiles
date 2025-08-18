@@ -425,22 +425,22 @@ function! HighlightAllDots()
 endfunction
 autocmd BufEnter *.js call HighlightAllDots()
 
-" The :AI command will run the current buffer through ~/bin/ai.py in order to
-" generate a continuation if it looks like an ai.py conversation, otherwise it
-" will start a new conversation.
-function! AIFilter()
+" The :AI command will run the current buffer through ~/bin/ai-cat.py in order
+" to generate a continuation if it looks like an ai-cat.py conversation,
+" otherwise it will start a new conversation.
+function! AICat()
     " Command which will replace the buffer with the stdout of the shell command
     " while displaying its stderr in the terminal.
-    let l:ai_filter_cmd = "%!~/bin/ai.py stdio 2>/dev/tty"
+    let l:ai_filter_cmd = "%!~/bin/ai-cat.py stdio 2>/dev/tty"
 
     let l:cursor_position = getpos(".")
 
-    " Does the currently edited buffer's name look like an ai.py conversation?
-    " If the name is empty or ends with .md, then it does.
+    " Does the currently edited buffer's name look like an ai-cat.py
+    " conversation? If the name is empty or ends with .md, then it does.
     let l:may_be_ai_conversation = (expand("%") =~ "^\\(.*\\.md\\)\\?$")
 
-    " Is the buffer an already initialized, ongoing ai.py conversation?
-    " If it contains block header lines used by ai.py, then it is.
+    " Is the buffer an already initialized, ongoing ai-act.py conversation?
+    " If it contains block header lines used by ai-act.py, then it is.
     let l:is_ai_conversation = 0
 
     if l:may_be_ai_conversation
@@ -484,7 +484,7 @@ function! AIFilter()
     else
         " Need to initialize a new conversaion - since this will overwrite the
         " entire buffer, we do it in a new tab if the current one is not empty
-        " or its name doesn't look like an ai.py conversaion.
+        " or its name doesn't look like an ai-cat.py conversaion.
 
         if line("$") != 1 || getline(1) != "" || !l:may_be_ai_conversation
             tabnew
@@ -503,7 +503,7 @@ function! AIFilter()
         startinsert
     endif
 endfunction
-command! -nargs=0 AI call AIFilter()
+command! -nargs=0 AI call AICat()
 
 " Pressing I (Shift+i) in visual mode will select everything between the
 " previous and the next Markdown code fence. (Does not handle code blocks
