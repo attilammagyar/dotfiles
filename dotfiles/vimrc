@@ -531,6 +531,9 @@ endfunction
 " requests more information or otherwise fails to produce a usable replacement,
 " then the conversation is opened in a new tab for editing. From there, the
 " `:AI` command can be used to continue it. (See above.)
+"
+" NOTE: only the selected lines and the name of the edited file are sent to the
+"       AI, so make sure that they contain all the necessary information.
 function! AICatTabComplete() range
     let l:begin_line = line("'<")
     let l:end_line = line("'>")
