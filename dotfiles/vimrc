@@ -548,11 +548,17 @@ function! AICatTabComplete() range
 
     if v:shell_error != 0
         redraw!
-        tabnew
-        set filetype=markdown
-        call append(0, split(l:output, "\n", 1))
-        call AIJumpToRelevantBlock()
-        echo "The AI needs more info, use :AI to continue the conversation"
+
+        if v:shell_error == 1
+            tabnew
+            set filetype=markdown
+            call append(0, split(l:output, "\n", 1))
+            call AIJumpToRelevantBlock()
+            echo "The AI needs more info, use :AI to continue the conversation"
+            return
+        endif
+
+        echohl ErrorMsg | echo "Error running ai-cat.py" | echohl None
         return
     endif
 
