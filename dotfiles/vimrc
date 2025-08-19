@@ -528,8 +528,9 @@ endfunction
 
 " Add to-do comments to a piece of code, select the relevant lines, then press
 " the Tab key to run them through the last used AI in ai-cat.py. If the AI
-" requests more information or otherwise fails to produce a usable output, then
-" the conversation is opened in a new tab.
+" requests more information or otherwise fails to produce a usable replacement,
+" then the conversation is opened in a new tab for editing. From there, the
+" `:AI` command can be used to continue it. (See above.)
 function! AICatTabComplete() range
     let l:begin_line = line("'<")
     let l:end_line = line("'>")
