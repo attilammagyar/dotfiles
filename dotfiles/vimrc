@@ -171,12 +171,12 @@ if !has('gui_running')
 endif
 
 " Pressing F4 will attempt to git-blame the line under the cursor.
-command! GitBlame :echo system('vim_git.sh blame '''.expand('%').''' '.line('.'))
+command! GitBlame :echo system('vim_git.sh blame ' . shellescape(expand('%')) . ' ' . line('.'))
 nnoremap <F4> :GitBlame<CR>
 
 function! OpenAll(command, pattern_to_position_cursor)
-    for f in split(system(a:command .  ' 2>/dev/null | grep -Ev ''[.](swp|pyc|pickle)$'''), "\n")
-        execute 'tabe ' . f
+    for l:f in split(system(a:command .  ' 2>/dev/null | grep -Ev ''[.](swp|pyc|pickle)$'''), "\n")
+        execute "tabedit " . l:f
         if a:pattern_to_position_cursor!=''
             execute '/' . a:pattern_to_position_cursor
             nohl
@@ -187,7 +187,7 @@ endfunction
 " The command :Grep pattern will open all the files matching pattern
 " in a case sensitive manner
 function! Grep(pattern)
-    call OpenAll('grep -Rlm1 -- ''' . a:pattern . ''' *', a:pattern)
+    call OpenAll('grep -Rlm1 -- ' . shellescape(a:pattern) . ' *', a:pattern)
 endfunction
 command! -nargs=1 Grep call Grep('<args>')
 command! -nargs=1 G call Grep('<args>')
@@ -200,7 +200,7 @@ nnoremap <F6> :call Grep(expand('<cword>'))<CR>
 " The command :GitGrep pattern will open all the files in a git repository
 " matching pattern in a case sensitive manner
 function! GitGrep(pattern)
-    call OpenAll('git grep -l -- ''' . a:pattern . ''' *', a:pattern)
+    call OpenAll('git grep -l -- ' . shellescape(a:pattern) . ' *', a:pattern)
 endfunction
 command! -nargs=1 GitGrep call GitGrep('<args>')
 command! -nargs=1 GG call GitGrep('<args>')
@@ -210,7 +210,7 @@ command! -nargs=0 GGCW call GitGrep(expand('<cword>'))
 " The command :Find d*f.txt will open all the files matching the given path,
 " in a case insensitive manner, e.g. 'dir/File.txt', in a new tab.
 function! Find(pattern)
-    call OpenAll('find -L * -ipath ''*' . a:pattern . '''', '')
+    call OpenAll('find -L * -ipath ' . shellescape('*' . a:pattern), '')
 endfunction
 command! -nargs=1 Find call Find('<args>')
 command! -nargs=1 F call Find('<args>')
@@ -224,7 +224,7 @@ nnoremap <F7> :Find
 " or 'interface Name' in a case insensitive manner
 function! FindClass(pattern)
     let l:pattern = '\(^\|[^a-zA-Z0-9_]\)\(\(class\)\|\(interface\)\)\s\s*' . a:pattern . '\([^a-zA-Z0-9_]\|$\)'
-    call OpenAll('grep -Rilm1 ''' . l:pattern . ''' *', l:pattern)
+    call OpenAll('grep -Rilm1 ' . shellescape(l:pattern) . ' *', l:pattern)
 endfunction
 command! -nargs=1 FindClass call FindClass('<args>')
 command! -nargs=1 FC call FindClass('<args>')
@@ -235,7 +235,7 @@ command! -nargs=0 FCCW call FindClass(expand('<cword>'))
 " or 'interface Name' in a git repository in a case insensitive manner
 function! GitFindClass(pattern)
     let l:pattern = '\(^\|[^a-zA-Z0-9_]\)\(\(class\)\|\(interface\)\)\s\s*' . a:pattern . '\([^a-zA-Z0-9_]\|$\)'
-    call OpenAll('git grep -il ''' . l:pattern . ''' *', l:pattern)
+    call OpenAll('git grep -il ' . shellescape(l:pattern) . ' *', l:pattern)
 endfunction
 command! -nargs=1 GitFindClass call GitFindClass('<args>')
 command! -nargs=1 GFC call GitFindClass('<args>')
