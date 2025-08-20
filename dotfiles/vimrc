@@ -36,10 +36,10 @@ set scrolloff=5
 " Automatically format doxygen style comments
 set comments=sl:/**,mb:\ *,elx:\ */
 
-" Insert comment leader when hitting enter in insert mode
+" Insert comment leader when hitting enter in Insert mode
 set formatoptions+=r
 
-" Insert comment leader when hitting o in normal mode
+" Insert comment leader when hitting o in Normal mode
 set formatoptions+=o
 
 " Font name for gVim
@@ -572,7 +572,7 @@ function! AICatTabReplace() range
 endfunction
 xnoremap <silent> <Tab> :call AICatTabReplace()<CR>
 
-" Pressing I (Shift+i) in visual mode will select everything between the
+" Pressing I (Shift+i) in Visual mode will select everything between the
 " previous and the next Markdown code fence. (Does not handle code blocks
 " that are nested inside other elements like list items or block quotes.)
 function! SelectBetweenMarkdownFences()
