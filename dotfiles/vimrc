@@ -2,7 +2,9 @@
 set number
 autocmd BufNewFile,BufRead * set number
 
+" Turn off modelines
 set nomodeline
+set modelines=0
 
 " Indent *.feature, *.xml, etc. files by 2 spaces, anything else by 4
 function! SetIndentation()
