@@ -69,31 +69,31 @@ endif
 highlight Constant ctermbg=black ctermfg=green
 
 " Display the TDD state machine -- useful for screencasts
-let g:TDDState=0
-let g:TDDStates=['', '   FAIL  ', '   PASS  ', ' REFACTOR']
+let g:tdd_state=0
+let g:tdd_states=['', '   FAIL  ', '   PASS  ', ' REFACTOR']
 
 highlight User1 ctermbg=black ctermfg=green
 
 function! FormatTDDState()
-    if g:TDDState == 0
+    if g:tdd_state == 0
         return ''
     endif
 
-    return g:TDDStates[g:TDDState]
+    return g:tdd_states[g:tdd_state]
 endfunction
 
 function! AdvanceTDDState()
-    let g:TDDState=g:TDDState+1
+    let g:tdd_state=g:tdd_state+1
 
-    if g:TDDState == 4
-        let g:TDDState=1
+    if g:tdd_state == 4
+        let g:tdd_state=1
     endif
 
-    if g:TDDState == 1
+    if g:tdd_state == 1
         highlight User1 ctermbg=black ctermfg=red
-    elseif g:TDDState == 2
+    elseif g:tdd_state == 2
         highlight User1 ctermbg=black ctermfg=green
-    elseif g:TDDState == 3
+    elseif g:tdd_state == 3
         highlight User1 ctermbg=black ctermfg=blue
     endif
 endfunction
