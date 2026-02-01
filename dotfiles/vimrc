@@ -660,7 +660,7 @@ endfunction
 " the Tab key to run them through the last used AI in ai-cat.py. If the AI
 " requests more information or otherwise fails to produce a usable replacement,
 " then the conversation is opened in a new tab for editing. From there, the
-" `:AI` command can be used to continue it. (See above.)
+" `:AI` command can be used for continuing it. (See above.)
 "
 " NOTE: only the selected lines and the name of the edited file are sent to the
 "       AI, so make sure that they contain all the necessary information.
@@ -673,35 +673,72 @@ function! AICatTabReplace() range
         return
     endif
 
-    echohl None | echo "Waiting for AI..."
-
     let l:ai_cat_cmd = AICatCmd("replace " . shellescape(expand("%")))
     let l:input = join(getline(l:begin_line, l:end_line), "\n") . "\n"
-    let l:output = system(l:ai_cat_cmd, l:input)
+    let l:data = [l:begin_line, l:end_line, l:input]
 
-    if v:shell_error != 0
-        if v:shell_error == 1
-            redraw!
-            tabnew
-            set filetype=markdown
-            call append(0, split(l:output, "\n", 1))
-            call AIJumpToRelevantBlock()
-            echo "The AI needs more info, use :AI to continue the conversation"
-            return
-        endif
+    echohl None | echo "Sending request to AI..."
 
-        echohl ErrorMsg | echo "Error running ai-cat.py" | echohl None
-        call input("", "Press ENTER to continue.")
+    call SystemAsync(l:ai_cat_cmd, l:input, "AICatTabReplaceCbOk", "AICatTabReplaceCbErr", l:data)
+endfunction
+xnoremap <silent> <Tab> :call AICatTabReplace()<CR>
+
+function! AICatTabReplaceCbOk(output, data)
+    let l:begin_line = a:data[0]
+    let l:end_line = a:data[1]
+    let l:old_lines = a:data[2]
+
+    let l:current_lines = join(getline(l:begin_line, l:end_line), "\n") . "\n"
+
+    if l:old_lines != l:current_lines
         redraw!
+        tabnew
+        call append(0, a:output)
+        echo "Buffer changed while the AI was working"
         return
     endif
 
+    let l:current_pos = getpos(".")
+    let l:current_line = l:current_pos[1]
+    let l:current_col = l:current_pos[2]
+
     execute l:begin_line . "," . l:end_line . "delete _"
-    call append(l:begin_line - 1, split(l:output, "\n", 1))
-    execute "normal! " . l:begin_line . "G"
+    call append(l:begin_line - 1, a:output)
+
+    let l:line_num_delta = len(a:output) - (l:end_line - l:begin_line + 1)
+    let l:current_line += l:line_num_delta
+
+    let l:task_id = 0
+    let l:num_tasks = len(g:system_async_tasks)
+
+    execute "normal! " . l:current_line . "G" . l:current_col . "|"
     redraw!
+
+    while l:task_id < l:num_tasks
+        let l:task = g:system_async_tasks[l:task_id]
+
+        if l:task[1] == "AICatTabReplaceCbOk"
+            let l:task_data = l:task[3]
+
+            if l:task_data[1] > l:end_line
+                let g:system_async_tasks[l:task_id][3][0] += l:line_num_delta
+                let g:system_async_tasks[l:task_id][3][1] += l:line_num_delta
+            endif
+        endif
+
+        let l:task_id += 1
+    endwhile
 endfunction
-xnoremap <silent> <Tab> :call AICatTabReplace()<CR>
+
+function! AICatTabReplaceCbErr(output, data)
+    redraw!
+    tabnew
+    set filetype=markdown
+    call append(0, a:output)
+    call AIJumpToRelevantBlock()
+    echo "Failed to get suitable replacemenet, use :AI to continue the conversation"
+    return
+endfunction
 
 " Pressing I (Shift+i) in Visual mode will select everything between the
 " previous and the next Markdown code fence. (Does not handle code blocks
