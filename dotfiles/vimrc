@@ -165,6 +165,7 @@ function! SystemAsyncSetUpTimer()
         let l:augroup_cmd .= " | execute 'autocmd CursorHoldI * call SystemAsyncCheckResults()'"
         let l:augroup_cmd .= " | execute 'autocmd CursorMoved * call SystemAsyncCheckResults()'"
         let l:augroup_cmd .= " | execute 'autocmd CursorMovedI * call SystemAsyncCheckResults()'"
+        let l:augroup_cmd .= " | execute 'autocmd BufEnter * call SystemAsyncCheckResults()'"
         let l:augroup_cmd .= " | augroup END"
         execute l:augroup_cmd
     endif
@@ -175,6 +176,7 @@ function! SystemAsyncCheckResults()
     execute "autocmd! system_async CursorHoldI *"
     execute "autocmd! system_async CursorMoved *"
     execute "autocmd! system_async CursorMovedI *"
+    execute "autocmd! system_async BufEnter *"
 
     let &updatetime = g:system_async_orig_updatetime
     let g:system_async_timer_set_up = 0
