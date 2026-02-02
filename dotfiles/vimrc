@@ -104,17 +104,24 @@ noremap <F10> :call AdvanceTDDState()<CR>
 " Trickery to simulate asynchronous command execution in single-threaded Vim
 " using background shell execution and cursor events as result checker timer
 " triggers.
+" Note: A background task belongs to the buffer where it was initiated, so to
+" see its results, you need to switch back to that tab/window/buffer.
 let g:system_async_tasks = []
 let g:system_async_orig_updatetime = &updatetime
 let g:system_async_timer_set_up = 0
+let g:system_async_num_running_tasks = 0
 
-function! CallFuncByName(name, arg1, arg2)
+function! CallFuncByName(name, arg1, arg2, arg3)
+    echo "CallFuncByName: " . a:name
+
     let l:Func = function(a:name)
 
-    call Func(a:arg1, a:arg2)
+    call Func(a:arg1, a:arg2, a:arg3)
 endfunction
 
 function! SystemAsync(command, stdin, ok_callback, err_callback, data)
+    let l:current_file = expand("%")
+
     if has("win32")
         echohl None | echo "Running " . a:command . "..."
 
@@ -122,9 +129,9 @@ function! SystemAsync(command, stdin, ok_callback, err_callback, data)
         let l:output = system(a:command, a:stdin)
 
         if v:shell_error == 0
-            call CallFuncByName(a:ok_callback, l:output, a:data)
+            call CallFuncByName(a:ok_callback, l:current_file, l:output, a:data)
         else
-            call CallFuncByName(a:err_callback, l:output, a:data)
+            call CallFuncByName(a:err_callback, l:current_file, l:output, a:data)
         endif
 
         return
@@ -132,7 +139,7 @@ function! SystemAsync(command, stdin, ok_callback, err_callback, data)
 
     let l:tmp_file = tempname()
 
-    let g:system_async_tasks += [[l:tmp_file, a:ok_callback, a:err_callback, a:data]]
+    let g:system_async_tasks += [[l:current_file, l:tmp_file, a:ok_callback, a:err_callback, a:data]]
     call SystemAsyncSetUpTimer()
 
     let l:tmp_file = shellescape(l:tmp_file)
@@ -152,10 +159,13 @@ function! SystemAsyncSetUpTimer()
         let g:system_async_timer_set_up = 1
         let g:system_async_orig_updatetime = &updatetime
         set updatetime=1000
-        execute "augroup system_async | execute 'autocmd CursorHold * call SystemAsyncCheckResults()' | augroup END"
-        execute "augroup system_async | execute 'autocmd CursorHoldI * call SystemAsyncCheckResults()' | augroup END"
-        execute "augroup system_async | execute 'autocmd CursorMoved * call SystemAsyncCheckResults()' | augroup END"
-        execute "augroup system_async | execute 'autocmd CursorMovedI * call SystemAsyncCheckResults()' | augroup END"
+        let l:augroup_cmd = "augroup system_async"
+        let l:augroup_cmd .= " | execute 'autocmd CursorHold * call SystemAsyncCheckResults()'"
+        let l:augroup_cmd .= " | execute 'autocmd CursorHoldI * call SystemAsyncCheckResults()'"
+        let l:augroup_cmd .= " | execute 'autocmd CursorMoved * call SystemAsyncCheckResults()'"
+        let l:augroup_cmd .= " | execute 'autocmd CursorMovedI * call SystemAsyncCheckResults()'"
+        let l:augroup_cmd .= " | augroup END"
+        execute l:augroup_cmd
     endif
 endfunction
 
@@ -168,6 +178,8 @@ function! SystemAsyncCheckResults()
     let &updatetime = g:system_async_orig_updatetime
     let g:system_async_timer_set_up = 0
 
+    let l:current_file = expand("%")
+
     " Iterating over task indices instead of the tasks themselves allows
     " callbacks to adjust data of any upcoming task without relying on how
     " Vimscript handles modifying lists while looping over them.
@@ -178,41 +190,67 @@ function! SystemAsyncCheckResults()
 
     let l:task_id = 0
     let l:num_tasks = len(g:system_async_tasks)
+    let l:num_running = 0
+    let l:num_succeeded = 0
+    let l:num_failed = 0
 
     while l:task_id < l:num_tasks
         let l:task = g:system_async_tasks[l:task_id]
+        let l:succeeded = 0
+        let l:failed = 0
 
-        if filereadable(l:task[0] . ".ok")
-            call delete(l:task[0] . ".ok")
-            let l:ok_calls += [l:task_id]
+        if filereadable(l:task[1] . ".ok")
+            let l:succeeded = 1
+            let l:num_succeeded += 1
         else
-            if filereadable(l:task[0] . ".fail")
-                call delete(l:task[0] . ".fail")
-                let l:fail_calls += [l:task_id]
+            if filereadable(l:task[1] . ".fail")
+                let l:failed = 1
+                let l:num_failed += 1
+            endif
+        endif
+
+        if l:current_file == l:task[0]
+            if l:succeeded != 0
+                let l:ok_calls += [l:task_id]
+                call delete(l:task[1] . ".ok")
             else
-                let l:new_system_async_task_ids += [l:task_id]
+                if l:failed != 0
+                    let l:fail_calls += [l:task_id]
+                    call delete(l:task[1] . ".fail")
+                else
+                    let l:new_system_async_task_ids += [l:task_id]
+                    let l:num_running += 1
+                endif
+            endif
+        else
+            let l:new_system_async_task_ids += [l:task_id]
+
+            if l:succeeded == 0 && l:failed == 0
+                let l:num_running += 1
             endif
         endif
 
         let l:task_id += 1
     endwhile
 
-    echohl None | echo "Tasks: ok:" . len(l:ok_calls) . " failed:" . len(l:fail_calls) . " running:" . len(l:new_system_async_task_ids)
+    let g:system_async_num_running_tasks = l:num_running
+
+    echohl None | echo "Tasks: ok:" . l:num_succeeded . " failed:" . l:num_failed . " running:" . l:num_running
 
     for l:task_id in l:ok_calls
         let l:task = g:system_async_tasks[l:task_id]
-        let l:output = readfile(l:task[0] . ".out")
-        call delete(l:task[0] . ".out")
-        call delete(l:task[0] . ".err")
-        call CallFuncByName(l:task[1], l:output, l:task[3])
+        let l:output = readfile(l:task[1] . ".out")
+        call delete(l:task[1] . ".out")
+        call delete(l:task[1] . ".err")
+        call CallFuncByName(l:task[2], l:task[0], l:output, l:task[4])
     endfor
 
     for l:task_id in l:fail_calls
         let l:task = g:system_async_tasks[l:task_id]
-        let l:output = readfile(l:task[0] . ".err")
-        call delete(l:task[0] . ".out")
-        call delete(l:task[0] . ".err")
-        call CallFuncByName(l:task[2], l:output, l:task[3])
+        let l:output = readfile(l:task[1] . ".err")
+        call delete(l:task[1] . ".out")
+        call delete(l:task[1] . ".err")
+        call CallFuncByName(l:task[3], l:task[0], l:output, l:task[4])
     endfor
 
     let l:new_system_async_tasks = []
@@ -256,7 +294,7 @@ set statusline+=x%02.B
 "   scroll position percentage
 set statusline+=\ %3.p%%
 "   background tasks
-set statusline+=\ B:%{len(system_async_tasks)}
+set statusline+=\ B:%{g:system_async_num_running_tasks}
 " TDD state
 set statusline+=%1*%{FormatTDDState()}
 
@@ -683,7 +721,7 @@ function! AICatTabReplace() range
 endfunction
 xnoremap <silent> <Tab> :call AICatTabReplace()<CR>
 
-function! AICatTabReplaceCbOk(output, data)
+function! AICatTabReplaceCbOk(file_name, output, data)
     let l:begin_line = a:data[0]
     let l:end_line = a:data[1]
     let l:old_lines = a:data[2]
@@ -717,12 +755,12 @@ function! AICatTabReplaceCbOk(output, data)
     while l:task_id < l:num_tasks
         let l:task = g:system_async_tasks[l:task_id]
 
-        if l:task[1] == "AICatTabReplaceCbOk"
-            let l:task_data = l:task[3]
+        if l:task[0] == a:file_name && l:task[2] == "AICatTabReplaceCbOk"
+            let l:task_data = l:task[4]
 
             if l:task_data[1] > l:end_line
-                let g:system_async_tasks[l:task_id][3][0] += l:line_num_delta
-                let g:system_async_tasks[l:task_id][3][1] += l:line_num_delta
+                let g:system_async_tasks[l:task_id][4][0] += l:line_num_delta
+                let g:system_async_tasks[l:task_id][4][1] += l:line_num_delta
             endif
         endif
 
@@ -730,7 +768,7 @@ function! AICatTabReplaceCbOk(output, data)
     endwhile
 endfunction
 
-function! AICatTabReplaceCbErr(output, data)
+function! AICatTabReplaceCbErr(file_name, output, data)
     redraw!
     tabnew
     set filetype=markdown
