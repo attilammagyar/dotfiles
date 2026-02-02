@@ -747,7 +747,10 @@ function! AICatTabReplaceCbOk(file_name, stdout, stderr, data)
     call append(l:begin_line - 1, a:stdout)
 
     let l:line_num_delta = len(a:stdout) - (l:end_line - l:begin_line + 1)
-    let l:current_line += l:line_num_delta
+
+    if l:begin_line < l:current_line
+        let l:current_line += l:line_num_delta
+    endif
 
     let l:task_id = 0
     let l:num_tasks = len(g:system_async_tasks)
