@@ -111,14 +111,24 @@ let g:system_async_orig_updatetime = &updatetime
 let g:system_async_timer_set_up = 0
 let g:system_async_num_running_tasks = 0
 
-function! CallFuncByName(name, arg1, arg2, arg3, arg4)
-    echo "CallFuncByName: " . a:name
-
-    let l:Func = function(a:name)
-
-    call Func(a:arg1, a:arg2, a:arg3, a:arg4)
-endfunction
-
+" Asynchronous version of the system() function.
+"
+" Parameters:
+" - command (string):      the shell command to run
+" - stdin (string):        string to pass to the command on its standard input
+" - ok_callback (string):  name of a function to be called sooner or later
+"                          after the command stops with a 0 exit status;
+" - err_callback (string): name of a function to be called sooner or later
+"                          after the command stops with a non-zero exit status
+" - data (any):            custom data to pass to the callbacks
+"
+" Signature of the callbacks: func(file_name, stdout, stderr, data), where:
+" - file_name (string):    the name of the file in the buffer where the
+"                          SystemAsync() call was initiated
+" - stdout (list):         contents from the standard output of the command
+" - stderr (list):         contents from the standard error of the command
+" - data (any):            the custom data that was passed to
+"                          SystemAsync()
 function! SystemAsync(command, stdin, ok_callback, err_callback, data)
     let l:current_file = expand("%")
 
@@ -130,9 +140,9 @@ function! SystemAsync(command, stdin, ok_callback, err_callback, data)
         let l:output = split(l:output, "\n", 1)
 
         if v:shell_error == 0
-            call CallFuncByName(a:ok_callback, l:current_file, l:output, [""], a:data)
+            call SystemAsyncCallFuncByName(a:ok_callback, l:current_file, l:output, [""], a:data)
         else
-            call CallFuncByName(a:err_callback, l:current_file, l:output, [""], a:data)
+            call SystemAsyncCallFuncByName(a:err_callback, l:current_file, [""], l:output, a:data)
         endif
 
         return
@@ -153,6 +163,12 @@ function! SystemAsync(command, stdin, ok_callback, err_callback, data)
     let l:cmd .= " &"
 
     call system(l:cmd, a:stdin)
+endfunction
+
+function! SystemAsyncCallFuncByName(name, arg1, arg2, arg3, arg4)
+    let l:Func = function(a:name)
+
+    call Func(a:arg1, a:arg2, a:arg3, a:arg4)
 endfunction
 
 function! SystemAsyncSetUpTimer()
@@ -246,7 +262,7 @@ function! SystemAsyncCheckResults()
         let l:stderr = readfile(l:task[1] . ".err")
         call delete(l:task[1] . ".out")
         call delete(l:task[1] . ".err")
-        call CallFuncByName(l:task[2], l:task[0], l:stdout, l:stderr, l:task[4])
+        call SystemAsyncCallFuncByName(l:task[2], l:task[0], l:stdout, l:stderr, l:task[4])
     endfor
 
     for l:task_id in l:fail_calls
@@ -255,7 +271,7 @@ function! SystemAsyncCheckResults()
         let l:stderr = readfile(l:task[1] . ".err")
         call delete(l:task[1] . ".out")
         call delete(l:task[1] . ".err")
-        call CallFuncByName(l:task[3], l:task[0], l:stdout, l:stderr, l:task[4])
+        call SystemAsyncCallFuncByName(l:task[3], l:task[0], l:stdout, l:stderr, l:task[4])
     endfor
 
     let l:new_system_async_tasks = []
@@ -716,7 +732,7 @@ function! AICatTabReplace() range
         return
     endif
 
-    let l:ai_cat_cmd = AICatCmd("replace " . shellescape(expand("%")))
+    let l:ai_cat_cmd = "ai-cat.py replace " . shellescape(expand("%"))
     let l:input = join(getline(l:begin_line, l:end_line), "\n") . "\n"
     let l:data = [l:begin_line, l:end_line, l:input]
 
