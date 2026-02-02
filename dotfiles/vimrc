@@ -127,11 +127,12 @@ function! SystemAsync(command, stdin, ok_callback, err_callback, data)
 
         " Windows shell is crap, fallback to synchronous execution.
         let l:output = system(a:command, a:stdin)
+        let l:output = split(l:output, "\n", 1)
 
         if v:shell_error == 0
-            call CallFuncByName(a:ok_callback, l:current_file, l:output, "", a:data)
+            call CallFuncByName(a:ok_callback, l:current_file, l:output, [""], a:data)
         else
-            call CallFuncByName(a:err_callback, l:current_file, l:output, "", a:data)
+            call CallFuncByName(a:err_callback, l:current_file, l:output, [""], a:data)
         endif
 
         return
