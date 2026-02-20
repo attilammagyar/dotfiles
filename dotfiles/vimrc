@@ -546,7 +546,7 @@ autocmd BufNewFile,BufRead *.twig           set filetype=htmldjango
 " Use tabs in Makefiles, go files, TSV files, etc. and spaces in anything
 " else for indentation
 function! ToggleTabExpansion()
-    let l:pattern = '\(^\|/\)\(\([Mm]akefile\(\..*\)\?\)\|\(debian/rules\)\|\(.*\.go\)\|\(.*\.tsv\)\)$'
+    let l:pattern = '\(^\|/\)\(\([Mm]akefile\(\..*\)\?\)\|\(.*\.mk\)\|\(debian/rules\)\|\(.*\.go\)\|\(.*\.tsv\)\)$'
     if empty(matchstr(expand('%'), l:pattern))
         set expandtab
     else
